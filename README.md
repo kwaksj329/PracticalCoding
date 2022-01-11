@@ -281,8 +281,187 @@ _bash를 실행하는 중 & ps 명령어도 실행되고 있었으므로 표시�
 * `TTY` = terminal  
 
 ### `tty`  
+리눅스 device 중 콘솔/터미널을 의미함  
 
-//40분 19초
+```
+$ tty
+/dev/pts/8
+```  
+
+* 리눅스 운영체제는 컴퓨터의 모든 자원을 파일로 관리하며, 그 파일은 disk이다.  
+Disk는 디렉토리를 찾아서 갈 수 있다.  
+
+### `cd /dev`  
+
+/dev = device 파일을 위한 디렉토리이다.  
+장치 드라이버, 터미널, 프린터 등 주변 장치들을 나타내는 파일들이 존재한다.  
+
+* d - directory
+* c - character device
+* b - block device
+* l - simbolic link  
+
+_permission 앞에 붙은 문자는 파일의 종류를 나타낸다._
+
+### `cd /dev/pts`  
+
+내 device pts가 존재하는 디렉토리  
+
+`crw--w----  1  hwan  tty  136,  8  1월  5  14:19  **8**`  
+
+**Q**) 위 /dev/pts에 존재하는 8번 파일에 대해 설명하세요.  
+> 8이라고 하는 파일은 character device 입니다.  
+8 device를 소유한 hwan은 read, write 할 수 있습니다.  
+8 파일을 소유한 tty 그룹은 write 할 수 있는 권한이 있으며 이 외의 사용자는 아무 권한도 없습니다.  
+
+* 위 8번 device에 대해 권한 변경 가능 -> ex) chmod 777 8
+> echo pcc001 > 8 으로 입력 가능  
+
+### `wall`  
+write all = 모두에게 메세지 보낼 수 있음, ctrl + d 로 메세지 입력 종료  
+
+### `write pcc001`  
+wall과 같이 메세지를 보낼 수 있는 명령어, write pcc001은 pcc001에게 메세지를 보내게 된다.  
+
+### `mesg n`  
+message no = write permission turned off  
+
+### `biff`  
+이메일이 오면 벨을 울리게 하는 명령어, 개발한 사람의 옆집 개 이름  
+
+> 리눅스 명령어에서 어떤 규칙을 찾는 것은 불가능하다.  
+명령어의 word 선택은 규칙이 없다.
+
+### `man`  
+각종 명령어와 프로그램 사용법, 메뉴얼을 보여준다.
+
+```
+$ man cat       ; cat 명령어의 메뉴얼을 보여준다.
+```  
+
+```
+$ man cp        ; cp 명령어의 메뉴얼을 보여준다.
+```  
+
+<div style="text-align : center;">
+    <img src=./img/man_cp.png width="75%"/>  
+</div>  
+
+* `cp [OPTION]` -> [OPTION]은 생략할 수 있다.  
+* `cp [OPTION] ...` -> ...은 여러 옵션이 붙을 수 있음을 의미한다.  
+* `cp [OPTION] ... SOURCE ... DIRECTORY` -> SOURCE ...은 SOURCE가 여러개 붙을 수 있다는 뜻이다.  
+
+**tab을 습관적으로 사용하기! -> 파일명 입력할 때 실수를 줄여주는 방법**  
+
+### `반드시 알아야 할 단축키`  
+* ctrl + d: exit, EOF (End Of File)  
+* ctrl + c: kill signal  
+* ctrl + z: suspend signal  
+
+**Q**) ssh로 팔달관에 있는 git.ajou.ac.kr 컴퓨터로 들어갈 수 있다. git.ajou.ac.kr이 우리에게 device를 하나씩 줬는데 무슨 device일까?  
+> Terminal  
+
+**Q**) 나에게 준 터미널이 무엇인지 물어보고 싶다면?  
+> tty 명령어 입력 -> /dev/pts/11  
+/dev/pts/11 터미널을 주고 passward를 물어봐서 일치하면 첫번째로 실행되는 process는 bash임을 알 수 있다.  
+(ps 명령어로 실행중인 process 알 수 있다.)  
+
+### `ls -l 과 ps -l`  
+* ls -l: 파일이 자세히 보임
+* ps -l: process가 상세히 보임
+* 명령어 자체에는 규칙성이 없지만 명령어의 옵션이나 syntex의 규칙은 서로 매우 비슷하다!  
+
+```
+$ ps -l
+F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
+0 S  4001 18126 18125  2  80   0 -  6054 wait   pts/2    00:00:00 bash
+0 R  4001 18143 18126  0  80   0 -  7551 -      pts/2    00:00:00 ps
+```  
+
+* UID: user id  
+* PID: process id  
+* PPID: parent process id
+* ps process의 부모가 bash임을 알 수 있다.  
+    * ps의 PPID: 18126 == bash의 PID: 18126  
+
+**ls -al 명령어가 hidden 파일 보여주는 것처럼 ps -al 명령어도 hidden process 보여준다.**  
+
+<div style="text-align : center;">
+    <img src=./img/hello_world.png width="75%"/>  
+</div>  
+
+**Q**) a.out를 실행하면 왜 모니터에 Hello World! 가 출력될까?  
+> 지금 내가 사용하고 있는 shell 입장에서 shell의 가장 기본이 되는 input 장치와 output 장치 = **표준입출력장치**  
+stdio.h 를 include 했기 때문에 표준입출력장치에 Hello World! 가 출력된다.  
+
+### `stdio.h`  
+
+**Q**) stdio.h 파일은 어디에 있을까?  
+> /usr/bin/include 에 stdio.h가 존재한다!  
+```
+extern struct _IO_FILE *stdin;
+extern struct _IO_FILE *stdout;
+extern struct _IO_FILE *stderr;
+```
+
+* **리눅스는 모든 device가 파일이다!!!**  
+
+* I/O stream은 buffer로 이해하면 좋다.  
+
+* vi editor 명령:  
+    * if에 해당하는 endif 찾고 싶다면 **%** 누르기  
+    * 괄호의 짝을 찾을 때도 **%** 누르기
+    * line number 보고 싶다면 **:set number**
+    * 검색하고 싶을 때는 **/검색어** 로 찾기
+
+* /vmlinuz: 커널 파일, boot/vmlinuz-4.15.0-163-generic에 링크되어있다.  
+
+* /var: variable length, log 파일 등 가변 데이터 파일들이 저장된다.  
+
+### `lec02의 hello.c`  
+
+```
+#include <stdio.h>
+
+int main()
+{
+    FILE *fout;
+    fout = fopen("output.txt", "w");
+    fprintf(fout, "Hello World\n");
+}
+```
+
+**Q**) 위 코드를 통해 Hello World가 output.txt 파일에 써질까? [ **X** ]  
+> buffer를 닫지 않았기 때문에 output.txt에 써지지 않는다.  
+
+### `hello.c 수정한 버전`  
+
+```
+#include <stdio.h>
+
+int main()
+{
+    FILE *fout;
+    fout = fopen("output.txt", "w");
+    fprintf(fout, "Hello World\n");
+    fclose(fout);
+}
+```
+
+_이제 Hello World가 output.txt에 저장된다!_  
+
+* CPU가 Hello World라고 쓰면 storage device에 써지지 않음! buffer에 쓰여진다.  
+
+* buffer에 있는 것이 storage device에 저장되는 때는..? 3가지 mode 존재
+    1. memory 크기는 유한대이므로 buffer가 꽉 차면 그 때 storage device에 저장한다.
+    2. 한글자 buffer에 올때마다 storage device에 저장한다. (buffer size: 1byte)
+        * 대신 성능이 나쁘다. -> 일반적으로 memory보다 storage가 속도가 느리기 때문에
+    3. buffer control하는 명령이 왔을 때 storage device에 저장한다.  
+
+### `sleep`  
+
+
+//2시간 4분
 
 ***
 
