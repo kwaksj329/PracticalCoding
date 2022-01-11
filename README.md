@@ -14,7 +14,7 @@
 
 * Basic Linux Command
 
-`ls`
+### `ls`
 
 현재 디렉토리에 어떤 파일이 있는지 list를 보여주는 명령어  
 
@@ -24,11 +24,11 @@ $ ls -a                   ; 숨어있는 파일들도 표시
 $ ls -al pcc001           ; pcc001 디렉토리의 모든 파일 표시
 ```
 
-`pwd`  
+### `pwd`  
 
 print working directory : 현재 디렉토리 보여줌  
 
-`hostname`  
+### `hostname`  
 내가 지금 어떤 컴퓨터를 쓰는지 알고싶다면 사용  
 
 ```
@@ -36,28 +36,28 @@ $ hostname
 Kwakui-MacBookPro.local
 ```
 
-`who`  
+### `who`  
 컴퓨터에 누가 들어왔는지 보고싶을 때 사용  
 호스트에 로그인한 사용자의 정보를 출력
 
-`wc`  
+### `wc`  
 word count  
 주어지는 파일 또는 표준 입력의 바이트, 문자, 단어 그리고 줄(라인) 수를 출력해주는 명령어
 
-`who | wc`  
+### `who | wc`  
 who의 output이 다음 명령 wc에 들어감 : 현재 접속자 수 보여줌  
 
-`who | sort`  
+### `who | sort`  
 who의 output 정렬해서 보여줌
 
-`mkdir`  
+### `mkdir`  
 디렉토리 생성하는 명령어  
 
 ```
 $ mkdir pcc         ; pcc 디렉토리 생성, 이미 디렉토리가 존재한다면 에러 발생
 ```  
 
-`cd`  
+### `cd`  
 change directory  
 디렉토리를 이동하는 명령어
 
@@ -68,7 +68,7 @@ $ cd ..             ; 윗 디렉토리로 이동
 $ cd lec01          ; lec01 디렉토리로 이동
 ```
 
-`vi hello.c`  
+### `vi hello.c`  
 vi 에디터로 파일 생성 후 편집  
 
  * 3가지 mode: normal, insert, command mode  
@@ -85,10 +85,10 @@ vi 에디터로 파일 생성 후 편집
 
 
 
-`cc hello.c`  
+### `cc hello.c`  
 hello.c 파일 컴파일 -> 기본적으로 a.out 실행파일 생성됨  
 
-`mv`  
+### `mv`  
 파일을 이동시키는 명령어  
 
 ```
@@ -98,10 +98,10 @@ $ mv hello.c hola.c               ; hello.c 파일의 이름을 hola.c 로 변�
 
 _cp는 원본 파일이 남아있지만 mv는 원본 파일이 남아있지 않아 파일 이름 변경시에도 사용 가능하다._  
 
-`passwd`  
+### `passwd`  
 비밀번호 변경 가능, 현재 비밀번호 입력한 뒤 새로운 비밀번호로 변경  
 
-`chmod`  
+### `chmod`  
 파일의 모드를 변경하는 명령어
   
 | 파일 소유자 | 그룹 | 그 외 사용자 |
@@ -132,17 +132,17 @@ _cp는 원본 파일이 남아있지만 mv는 원본 파일이 남아있지 않�
     즉, group에 속한 사용자, 그 외 사용자, 그리고 super user이다.
     * super user = root = 이 기계를 관리하는 사람
 
-`groups`  
+### `groups`  
 내가 속한 그룹 보여줌
 
-`whoami`  
+### `whoami`  
 현재 로그인한 사용자의 id 출력
 ```
 $ whoami
 pcc001
 ```
 
-`cat`  
+### `cat`  
 어떤 파일의 내용을 보는 명령어
 ```
 $ cat hello.c
@@ -154,10 +154,10 @@ int main()
 }
 ```
 
-`whoami >> output`  
+### `whoami >> output`  
 whoami의 결과인 pcc001이 output 파일에 추가됨
 
-`history`  
+### `history`  
 내가 입력한 명령어 이력들 보기  
 
 ***
@@ -167,9 +167,11 @@ whoami의 결과인 pcc001이 output 파일에 추가됨
 ##### - 2022. 01. 05 [ Advanced C 언어 (1) 및 편집 도구 ]  
   
 
-`Computer Hardware System`  
+### `Computer Hardware System`  
 
-![hardware_sys](./img/hardware_sys.png)  
+<div style="text-align : center;">
+    <img src=./img/hardware_sys.png width="70%"/>  
+</div>
 
 _lec01 실습: output device에 Hello World를 출력하도록 명령함  
 실행 파일명: a.out_  
@@ -192,19 +194,23 @@ _lec01 실습: output device에 Hello World를 출력하도록 명령함
 > input device가 쓰는 버퍼: input buffer  
 > output device가 쓰는 버퍼: output buffer  
 
-`Computer system 구성요소`  
-
-![computer_sys](./img/computer_sys.png)
+### `Computer system 구성요소`  
+ 
+<div style="text-align : center;">
+    <img src=./img/computer_sys.png width="70%"/>  
+</div>
 
 * User, data, hardware, software 로 구성되어 있다.
 
-`Software`  
+### `Software`  
 * Application software  
 * System software: os, compiler, device driver  
     * system software, os: 사용자가 하드웨어를 쓰기 쉽게 해주는 기능 제공
     * os ( 운영체제 ): 하드웨어 바로 위에 존재  
 
-![software](./img/software.png)  
+<div style="text-align : center;">
+    <img src=./img/software.png width="70%"/>  
+</div>
 
 * bash: git-scm 설치 후 프롬프트 나오고 대화형으로 이 유틸리티를 사용할 수 있도록 만들어주는 것
 
@@ -212,9 +218,11 @@ _lec01 실습: output device에 Hello World를 출력하도록 명령함
     * hello.c를 컴파일해서 a.out 이라는 app 을 만든다. -> bash에서 a.out을 실행시킨다.  
     * HW에 출력하기 위해 shell에서 실행되어 system call 중 printf를 사용하여 커널에게 요청하고, 커널이 hw에게 출력하기를 요청하여 모니터에 Hello World! 가 출력된다.  
 
-`Linux kernel`
+### `Linux kernel`
 
-![linux_kernel](./img/linux_kernel.png)  
+<div style="text-align : center;">
+    <img src=./img/linux_kernel.png width="75%"/>  
+</div>
 
 * Linux Kernel에서도 위 **Computer hardware system** 그림에서 볼 수 있는 5가지 구성 요소를 모두 가지고 있다.  
 즉 OS는 Input & Output device, Memory, CPU, Storage devices와 같은 hw를 사용자가 사용하기 쉽게 만들어준다.
@@ -229,7 +237,9 @@ _lec01 실습: output device에 Hello World를 출력하도록 명령함
 
 * Processor != Process != Thread  
 
-![terminal](./img/terminal.png)  
+<div style="text-align : center;">
+    <img src=./img/terminal.png />  
+</div>
 
 * Terminal을 이해하기 위해서는 옛날 컴퓨터 사용방법 생각해보기  
     * 하나의 컴퓨터에 통신선을 통해 터미널과 연결하여 사용했었음  
@@ -241,7 +251,7 @@ _lec01 실습: output device에 Hello World를 출력하도록 명령함
 
 * Terminal = character device = Input 장치이면서 output 장치이다.  
 
-`Lec02 실습`
+### `Lec02 실습`
 
 * 리눅스에서는 모든 컴퓨터 자원, resource를 파일로 관리한다.  
 
@@ -251,13 +261,13 @@ _lec01 실습: output device에 Hello World를 출력하도록 명령함
 
 * 명령어를 기다리고 있다가 명령어를 수행하는 프로그램 이름은? **shell**
 
-`ssh`  
+### `ssh`  
 리눅스 서버에 원격 접속할 때 사용하는 명령어
 ```
 $ ssh pcc001@git.ajou.ac.kr
 ```
 
-`ps`  
+### `ps`  
 내가 실행하는 process 보고 싶을 때 사용하는 명령어  
 
 ```
@@ -270,7 +280,7 @@ _bash를 실행하는 중 & ps 명령어도 실행되고 있었으므로 표시�
 * `PID` = process id = 리눅스 내부에서는 process들이 번호로 관리됨  
 * `TTY` = terminal  
 
-`tty`  
+### `tty`  
 
 //40분 19초
 
