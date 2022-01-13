@@ -307,7 +307,7 @@ _permission 앞에 붙은 문자는 파일의 종류를 나타낸다._
 
 내 device pts가 존재하는 디렉토리  
 
-`crw--w----  1  hwan  tty  136,  8  1월  5  14:19  **8**`  
+`crw--w----  1  hwan  tty  136,  8  1월  5  14:19  8`  
 
 **Q**) 위 /dev/pts에 존재하는 8번 파일에 대해 설명하세요.  
 > 8이라고 하는 파일은 character device 입니다.  
@@ -459,9 +459,121 @@ _이제 Hello World가 output.txt에 저장된다!_
     3. buffer control하는 명령이 왔을 때 storage device에 저장한다.  
 
 ### `sleep`  
+뒤 입력 초만큼 sleep 하는 명령어, kill하고 싶다면 **ctrl + c** 누르기  
 
+```
+$ sleep 600             ; 600초, 10분 동안 sleep
+```  
 
-//2시간 4분
+### `cat`  
+파일(들)을 순서대로 읽고 그 내용을 읽은 순서대로 표준 출력에 쓰는 명령  
+
+```
+$ cat  
+aaa                     ; 입력
+aaa                     ; 출력
+bbb                     ; 입력
+bbb                     ; 출력
+```
+작업 끝내고 싶다면 **ctrl + d** 누르기  
+
+### `vi 에디터로 편집 중에 ctrl + z 누른 경우`  
+process를 잠시 suspend 시킴 (보류)  
+```
+$ vi hello.c            ; 편집 중에 ctrl + z 누른 뒤...
+[1]+    Stopped         vi hello.c  
+
+$ps
+  PID  TTY          TIME CMD
+20145  pts/11    0:00.00 bash
+23919  pts/11    0:00.00 vi
+27662  pts/11    0:00.00 ps
+
+$ jobs
+[1]+    Stopped         vi hello.c 
+```  
+
+### `Stopped 시킨 job으로 돌아가기`  
+**fg** = background 작업을 foreground로 옮기기
+```
+$ fg %1             ; 1번 작업인 vi 에디터로 다시 돌아감  
+```
+
+### `(sleep 1000 ; echo "pcc001 - 1000sec") &`  
+* 프로그램 실행 시에 끝에 &를 붙여 백그라운드로 실행시킬 수 있다.  
+* jobs 명령을 통해 현재 백그라운드에서 동작하고 있는 프로그램의 확인이 가능하다.  
+* 백그라운드 프로그램을 죽이고 싶다면 **kill -9 %번호**
+
+```
+$ sleep 1000 ; echo "pcc001 - 1000sec" &            ; 앞 작업이 끝나야 뒤 작업 실행되므로 제대로 작동하지 않음
+$ (sleep 1000 ; echo "pcc001 - 1000sec") &          ; 묶어주면 background 작업으로 작동함
+```
+
+### `cat a.out`  
+* a.out는 우리가 읽을 수  있는 텍스트 파일이 아니다. 따라서 cat a.out 실행시 읽을 수 없는 내용이 보여진다.  
+* hello.c는 C source, ASCII text 파일이므로 cat hello.c 명령어 실행시 파일 내용을 보여준다.  
+
+### `cat`  
+* concatenate files and print on the standard output  
+* 파일을 합쳐서 statndard output으로 보여주는 명령어  
+* ctrl + d 누르면 cat 프로그램 종료, (EOF)
+```
+$ cat
+aaa                 ; 파일이 없다면 statndard input을 입력으로 받아서
+aaa                 ; standard output에 출력한다.  
+```
+* 터미널 사용할 때 기본 입력장치: 키보드, 기본 출력장치: 모니터  
+* 버퍼 종류 중에 대표적인 것: 한줄씩 보내줌.
+    * stdin으로 aaa 엔터 입력 -> CPU가 처리 -> stdoout으로 한줄 내보냄.
+
+### `redirection`  
+* `< file` : stdin 대신에 이 파일을 쓰세요
+* `0< file` : < file 과 동일
+* `> file` : stdout 디바이스(/dev/pts/8)로 나갈 것을 file에 써주세요.  
+* `1> file`: > file과 동일  
+* `2> file`: stderr를 이 file로 내보내주세요.  
+
+### `date`  
+현재의 시간과 날짜를 stdout에 출력해주는 명령어  
+
+```
+$ date > date.txt           ; stdout이 date.txt 파일로 리디렉션됨.  
+$ cat date.txt
+2022. 01. 05 (수) 16:02:23 KST  
+
+$ cat date.txt hello.c output.txt > total.txt            ;파일 3개가 total.txt로 concatenate됨.
+$ cat hello.c hello.c hello.c > hello3                   ; hello.c 3개가 hello3에 합쳐짐  
+
+$ cat < hello3                                             ; input으로 hello.c를 받아서 stdout에 출력함.
+$ cat hello3                                               ; cat < hello3와 동일  
+
+$ cat < hello3 > hello4
+$ diff hello3 hello4        ; 두 파일은 동일한 파일이다.  
+
+$ cat hello.c hello.cpp 1>out.txt 2>err.txt 
+; hello.c 내용을 받아 stdout이 out.txt에 저장됨. hello.cpp 파일이 없어 발생한 에러 메세지는 err.txt에 저장된다.  
+```  
+
+### `stdin, stdout, stderr redirection`  
+in.txt 파일에는 학번(201921085)이 저장되어있고 아래 코드는 hello.c 파일이다.
+```
+#include <stdio.h>
+
+int main()
+{
+    int in_a;
+    fscanf(stdin, "%d", &in_a);
+    fprintf(stdout, "Hello stdout %d\n", in_a);
+    fprintf(stderr, "Hello stderr %d\n", in_a);
+}
+```
+
+```
+./a.out < in.txt > out.txt 2>err.txt
+```
+
+위 명령어 실행시 out.txt에는 Hello stdout 201921085가, err.txt에는 Hello stderr 201921085가 저장된다.  
+`>>` 는 계속 내용이 누적되도록 할 수 있다.  
 
 ***
 
