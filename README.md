@@ -580,7 +580,7 @@ int main()
 
 ## Lecture 3  
 
-##### - 2022. 01. 06 [ Advanced C 언어 (2) 및 편집 도구 ]  
+##### - 2022. 01. 06 [ Advanced C 언어 (2) 현장의 코딩 규칙 ]  
 
 ### `linux command`
 
@@ -771,28 +771,227 @@ $ git push
 * 내 PC 에서 git bash 실행하여 Desktop/new_folder로 이동한 다음 git clone 해옴  
 * 내 PC 에서도 파일을 수정하고 git add, git commit, git push 가능!  
 
-
-
 ***
 
 ## Lecture 4  
 
-##### - 2022. 01. 10
+##### - 2022. 01. 10   [ Advanced C 언어 (3) 전처리 및 포인터 ]
+
+### `pipe`  
+
+* standard I/O는 기본적으로 메모리에 들어있다.  
+* 그 메모리에 구성되어있는 디바이스는 /dev/stdin, /dev/stderr, /dev/stdout, /dev/fd 에 있다.  
+* 추가로 사용자가 3, 4, 5 ... 도 만들어서 stdin이나 stdout으로 내보낼 수 있다.  
+
+<div style="text-align : center;">
+    <img src=./img/stdio.png width="70%" >  
+</div>  
+
+### `redirection`  
+
+* `<` == `0<`  : 파일로부터 표준 입력을 받도록 redirection
+* `>` == `1>`  : stdout의 출력을 파일의 출력으로 redirection
+* `>>` == `1>>`  :stdout의 출력을 파일에 내용 추가 (append)
+* `2>`  : stderr의 출력을 파일의 출력으로 redirection
+* `2>>`  : stderr의 출력을 파일에 내용 추가 (append)  
+
+```
+$ echo hello > /tmp/out
+$ > /tmp/out echo hello             
+$ echo > /tmp/out hello                 ; 순서 바꿔도 상관 없음
+$ echo hello >&2
+$ echo >&2 hello                        ; stdout을 stderr로 내보냄
+$ read -r line < file            
+$ < file read -r line
+```  
+
+```
+$ mycomm > outfile 2>&1 을 줄여서 mycomm &> outfile
+$ mycomm >> outfile 2>&1 을 줄여서 mycomm &>> outfile
+$ mycomm1 2>&1 | mycomm2 을 줄여서 mycomm1 |& mycomm2
+```  
+
+```
+$ a.out <<< 300 &> out.txt
+$ more out.txt
+Hello stderr 300
+Hello stdout 300
+```
+
+**Q**) 코드는 stdout -> stderr 순서로 작성했는데 왜 out.txt에는 반대 순서로 저장되어 있을까?  
+> stdout에서 stdout device로, 그리고 stderr에서 stderr device로 나가는 순서는 누가 먼저 나갈지 아무도 모름!  
+만약 stdout 먼저 나가게 하고 싶다면 stdout buffer에 쓰고 flush 명령으로 버퍼 비우게 해야함. 그 다음에 stderr buffer에 쓰고 stderr device에 내보내야 순서대로 저장된다.  
+
+* 리디렉션 공부시 참고! [Redirection](https://mug896.github.io/bash-shell/redirections.html)  
+
+### `here document, here string`  
+
+* `here document`
+* `<<` == `0<<`  : 임시 파일을 만들어 stdin으로 연결  
+
+```
+$ cat <<EOF         ; EOF 라고 타이핑하기 전까지는 계속 입력을 받으세요.
+"200"
+EOF                 ; 입력 끝냄
+"200"
+```  
+
+```
+$ cat <<QQQ
+> 200
+> Hi
+> Print
+> QQQ               ; 입력 끝냄
+200
+Hi
+Print
+```
+
+* `here string`
+* `<<<`  : string을 stdin 입력으로 연결 (bash only)
+
+```
+$ cat <<< $( echo -e "hello\nhere        string" )          ; $ == 명령어 실행한 결과
+hello
+here        string
+
+$ cat <<< *               ; globbing 이 발생하지 않는다.
+*
+```
+
+```
+$ cat hello.c
+#include <stdio.h>
+
+int main()
+{
+    int in_a;
+    fscanf(stdin, "%d", &in_a);
+    fprintf(stdout, "Hello stdout %d\n", in_a);
+    fprintf(stderr, "Hello stderr %d\n", in_a);
+}
+
+$ cc hello.c            ; hello.c 컴파일하여 a.out 실행파일 생성됨.
+$ a.out <<< 99          ; here string, bash에서만 가능!
+Hello stdout 99
+Hello stderr 99
+```
+
+### `pipe order of execution`  
+
+`$ cmd1 | cmd2`  
+* cmd1 과 cmd2 는 동시에 병렬로 실행된다.  
+
+* cmd1 이 cmd2 보다 빠르면 파이프에 write 은 블록되고 더이상 진행되지 않는다.  
+
+* cmd2 가 cmd1 보다 빠르면 파이프 로부터의 read 는 블록된다.  
+
+* cmd1 이 먼저 종료하면 파이프는 close 되고 cmd2 는 End-Of-File 로 인식해 종료한다.  
+
+* cmd2 가 먼저 종료하면 파이프는 close 되고 cmd1 은 다음번 write 에 SIGPIPE 신호를 받게되고 종료된다. (파이프가 깨졌다는 신호)  
+
+**Q**) cmd1 이 cmd2 보다 빠르면 파이프에 write 은 블록되고 더이상 진행되지 않는 이유?  
+> stdin buffer와 stdout buffer 둘다 1024 바이트일 때, stdin이 stdout 보다 느린 경우 stdout을 안가져가면 버퍼가 꽉차서 stdout에 더 이상 내보내면 안된다.  
+버퍼가 꽉 차있는데 내보내면 버퍼 플로우가 일어나서 데이터를 잃게 된다.  
+
+**Q**) cmd2가 cmd1보다 빠른 반대의 경우에는?
+> cmd2 이 cmd1 보다 빠르면 파이프에 read 은 블록되고 더이상 진행되지 않는다.  
+
+### `named pipe`  
+
+* Pipe는 자동으로 생성 / 소멸
+* Named Pipe
+    * mkfifo 명령으로 생성 – 파일처럼 생성됨 
+    * redirection으로 sending
+* 읽는 상대편이 없으면 Block 된다
+* Buffer Control 이 필요
+
+### `globbing, wild card`  
+
+* glob 문자에 의해 매칭된 파일들로 치환되는 것: globbing
+* \* = 없는 것을 포함하여, 어떠한 수의 문자라도 일치
+* ? = 어떤 한 문자를 일치
+* [abc] = 대괄호 안의 하나의 문자를 일치
+* [a-c] =  대괄호 안의 범위에 속하는 하나의 문자를 일치  
+
+```
+$ echo h*           ; h로 시작하는 파일 보여줌
+hello.c
+$ echo *.c
+hello.c
+$ echo ?????        ; 5글자 파일 보여줌
+a.out
+$ echo ?????*       ; 5글자 넘는 파일 보여줌
+$ echo [abc]*       ; a/b/c로 시작하는 파일 보여줌
+$ echo [a-q]*       ; a~q로 시작하는 파일 보여줌
+```  
+
+### `b.out | a.out`  
+
+```
+$ cat hello.c               ; a.out 실행파일
+#include <stdio.h>
+
+int main()
+{
+    int in_a;
+    fscanf(stdin, "%d", &in_a);
+    fprintf(stdout, "Hello stdout %d\n", in_a);
+    fprintf(stderr, "Hello stderr %d\n", in_a);
+}
+
+$ vi hello2.c               ; input을 받아 stdout으로 숫자 내보내는 코드 작성
+$ cc -o b.out hello2.c
+$ b.out | a.out             ; b.out의 출력이 a.out의 입력으로 들어가 실행됨
+999
+Hello stdout 999
+Hello stderr 999
+```
+
+### `named pipe`  
+
+```
+# 첫번째 터미널에서..
+$ mkfifo pipe
+$ b.out > pipe
+99
+
+# 동시에 두번째 터미널에서..
+$ ./a.out < pipe        ; pipe에 담긴 99 읽어와서 실행 + 출력
+Hello stdout 99
+Hello stderr 99
+```  
+
+_pipe: a.out라는 프로그램과 b.out라는 프로그램, 두 프로그램 사이에서 통신하는데 사용 가능_   
+
+**대표적으로 두개의 process 간의 통신하는 방식: pipe**  
+
+### `vi pipe`
+
+```
+$ vi pipe           ; vi 에디터로 pipe 열어서 12345 저장함
+$ cat < pipe        ; pipe에 저장한 것 보여줌..!
+12345
+```
+
+신기하다..! 😎
+
+//1시간 20분부터
 
 ***
 
 ## Lecture 5
-##### - 2022. 01. 11
+##### - 2022. 01. 11   [ Advanced C 언어 (4) 임베디드 C 최적화 ]
 
 ***
 
 ## Lecture 6
-##### - 2022. 01. 12
+##### - 2022. 01. 12   [ 멀티 플랫폼 개발 ]
 
 ***
 
 
 ## Lecture 7
-##### - 2022. 01. 13
+##### - 2022. 01. 13   [ Make와 CMake ]
 
 ***
