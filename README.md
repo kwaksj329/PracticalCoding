@@ -1007,7 +1007,7 @@ int ifuncAdd(int a, int b)
     * floating - The set of values of the type float is a subset of the set of values of the type double; the set of values of the type double is a subset of the set of values of the type long double.
     * Complex
     * Bool - 0,1을 저장하면 된다. (따라서 일반적으로 int형 사용)  
-    * void - char의 포인터라고 생각하면 쉽다.
+    * void - char의 포인터라고 생각하면 쉽다.  
 
 * c언어에서 half float (2byte), float (4byte) double (8byte) long double(16byte)로 몇 바이트인지 정의하고 있지 않다. 
 
@@ -1057,7 +1057,7 @@ $ bin(-7)
     * define MB_LEN_MAX     16 
     * = 이 컴퓨터에서는 multibyte character 16 바이트보다는 크지 않아야한다.
 
-**limit.h는 기계마다, 컴파일러마다 다르다!**
+**limits.h는 기계마다, 컴파일러마다 다르다!**
 
 ### `10진수를 2진수로 출력해주는 코드`
 
@@ -1160,7 +1160,7 @@ int main()
 {
     int i;
     int in_a, in_b, in_c;
-    fscanf(stdin, "%d %d", &in_a), &in_b;
+    fscanf(stdin, "%d %d", &in_a, &in_b);
     in_c = in_a & in_b;
     for (i = 31 ; i >= 0 ; i--){
         
@@ -1239,14 +1239,131 @@ $ bin
 
 * -456 2번 shift한 결과를 보면 signed int는 맨 앞에 11이 들어갔는데 unsigned int는 맨 앞에 00이 들어가게 되었다.
 
-**signed int일 때, 즉 맨 앞이 1이어서 음수일 때는 오른쪽으로 shift 연산이 일어나면 1이 들어가고 unsigned int일 때, 즉 맨 앞이 1이지만 양수일 때는 오른쪽으로 shift 연산이 일어나면 0이 들어가게 된다.**  
+**signed int일 때, 즉 맨 앞이 1이어서 음수일 때는 오른쪽으로 shift 연산이 일어나면 1이 들어간다.**  
+
+**unsigned int일 때, 즉 맨 앞이 1이지만 양수일 때는 오른쪽으로 shift 연산이 일어나면 0이 들어가게 된다.**  
 
 ***
 
 ## Lecture 5
 ##### - 2022. 01. 11   
 
+* more: cat 과 비슷한데 다음 페이지 보고싶으면 space 키 누름
 
+* man cc -> gcc가 나옴
+
+* which cc -> /usr/bin/cc
+    * cc -> /etc/alternatives/cc
+    * /etc/alternatives/cc -> /usr/bin/gcc
+    * gcc -> gcc-7
+    * gcc-7 -> x86_64-linux-gnu-gcc-7
+    * x86_64-linux-gnu-gcc-7 : 이게 진짜 실행파일  
+
+* x86_64-linux-gnu-gcc-7  
+    * x86: cpu가 intel cpu 용이며, 
+    * _64: intel cpu를 위한 64bit, 
+    * linux: 운영체제는 리눅스를 위한,
+    * gnu gcc compiler이다.  
+
+* cpp = C preprocessor
+
+* 우리가 cc 하면 제일 먼저 cpp가 돌고, gcc compiler가 돌고, loader가 돌아서 a.out가 만들어진다.  
+
+### `unsigned int`  
+
+* binary.c 파일 아래와 같이 수정함
+
+```
+$ cat binary.c
+# include <stdio.h>
+
+int main()
+{
+    int i;
+    unsigned int in_a;
+    fscanf(stdin, "%u", &in_a);
+    fprintf(stdout, "%u \t : ", in_a);
+    for (i = 31 ; i >= 0 ; i--){
+        
+        fprintf(stdout, "%d", ((in_a>>i) & 1));
+        if (i % 4 == 0)
+            fprintf(stdout, " ");
+    }
+    fprintf(stdout, "\n");
+}
+```
+
+* unsigned int 범위를 넘어가는 입력이나 음수를 입력받으면 입력한 수와 다른 수로 출력된다.
+    * -1 입력하면 4294967295가 출력됨. (unsigned int로!)
+
+### `signed & unsigned int`
+
+* hello.c 아래와 같이 수정함 (실행파일 : a.out)
+
+```
+$ cat hello.c
+#include <stdio.h>
+
+int main()
+{
+    signed int siA;
+    unsigned int unA;
+
+    fscanf(stdin, "%d", &siA);
+    fprintf(stdout, "signed integer : %d\n", siA);
+    unA = siA;
+    fprintf(stdout, "unsigned integer : %u\n", unA);
+    fprintf(stdout, "unsigned integer percent d : %d\n", unA);
+    fprintf(stdout, "signed integer percent u : %u\n", siA);
+
+    fscanf(stdin, "%u", &unA);
+    fprintf(stdout, "unsigned integer : %u\n", unA);
+    siA = unA;
+    fprintf(stdout, "signed integer : %d\n", siA);
+}
+
+$ a.out
+-1
+signed integer : -1
+unsigned integer : 4294967295
+unsigned integer percent d : -1
+signed integer percent u : 4294967295
+4294967295
+unsigned integer : 4294967295
+signed integer : -1
+```
+
+* -1이 signed integer로 저장되면 메모리 상에 1111 1111 1111 1111 1111 1111 1111 1111로 저장된다.
+
+* 따라서 저장된 데이터 1111 1111 1111 1111을 unsigned integer로 읽으면 2진수 그대로 읽어서 4294967295로 출력하게 되는 것이다.
+
+* signed int로 받은 입력 -1을 signed int 변수와 unsigned int에 저장해서 출력해보기  
+
+|signed integer|unsigned integer|
+|:-------------:|:-------------:|
+|%d로 출력하기: -1|%d로 출력하기: -1|
+|%u로 출력하기: 4294967295|%u로 출력하기: 4294967295|
+
+* 이를 통해서 signed integer 변수에 저장하거나 unsigned integer 변수에 같은 값을 저장해도 %d, %u에 따라 출력된다는 것을 알 수 있다.
+
+**unsigned 와 signed 는 bitwise 똑같은 데이터이고, bit 상태가 구분되지 않는 똑같은 데이터임을 알 수 있다.**
+
+**다만 print할 때 %d로 print하면 signed int로, %u로 print하면 unsiged int로 출력된다.**
+
+**Q**) 어떤 숫자에 unsigned integer 값을 더하면 그 값은 절대로 증가한다? [ X ]
+> 오버플로우가 일어난다면 증가하지 않는다!  
+
+### `vi editor`  
+
+* yy + p : 복사 & 붙여넣기
+
+* 6yy + p : 6줄 복사 후 붙여넣기
+
+* dd : 한줄 삭제
+
+* dd + p : 삭제 한 줄 붙여넣기
+
+//1시간 8분부터
 
 ***
 
