@@ -18,10 +18,10 @@
 
 현재 디렉토리에 어떤 파일이 있는지 list를 보여주는 명령어  
 
-```console
-$ ls -l                   ; 파일의 상세 정보 표시
-$ ls -a                   ; 숨어있는 파일들도 표시
-$ ls -al pcc001           ; pcc001 디렉토리의 모든 파일 표시
+```bash
+$ ls -l                   # 파일의 상세 정보 표시
+$ ls -a                   # 숨어있는 파일들도 표시
+$ ls -al pcc001           # pcc001 디렉토리의 모든 파일 표시
 ```
 
 ### `pwd`  
@@ -31,7 +31,7 @@ print working directory : 현재 디렉토리 보여줌
 ### `hostname`  
 내가 지금 어떤 컴퓨터를 쓰는지 알고싶다면 사용  
 
-```console
+```bash
 $ hostname  
 Kwakui-MacBookPro.local
 ```
@@ -53,19 +53,19 @@ who의 output 정렬해서 보여줌
 ### `mkdir`  
 디렉토리 생성하는 명령어  
 
-```console
-$ mkdir pcc         ; pcc 디렉토리 생성, 이미 디렉토리가 존재한다면 에러 발생
+```bash
+$ mkdir pcc         # pcc 디렉토리 생성, 이미 디렉토리가 존재한다면 에러 발생
 ```  
 
 ### `cd`  
 change directory  
 디렉토리를 이동하는 명령어
 
-```console
-$ cd                ; cd 뒤에 디렉토리 입력 안하면 home directory로 이동
-$ cd ~              ; home directory로 이동, 위 명령어와 동일
-$ cd ..             ; 윗 디렉토리로 이동
-$ cd lec01          ; lec01 디렉토리로 이동
+```bash
+$ cd                # cd 뒤에 디렉토리 입력 안하면 home directory로 이동
+$ cd ~              # home directory로 이동, 위 명령어와 동일
+$ cd ..             # 윗 디렉토리로 이동
+$ cd lec01          # lec01 디렉토리로 이동
 ```
 
 ### `vi hello.c`  
@@ -91,9 +91,9 @@ hello.c 파일 컴파일 -> 기본적으로 a.out 실행파일 생성됨
 ### `mv`  
 파일을 이동시키는 명령어  
 
-```console
-$ mv a.out hello.c pcc            ; a.out와 hello.c 파일을 pcc 디렉토리로 이동시킴  
-$ mv hello.c hola.c               ; hello.c 파일의 이름을 hola.c 로 변경 가능
+```bash
+$ mv a.out hello.c pcc            # a.out와 hello.c 파일을 pcc 디렉토리로 이동시킴  
+$ mv hello.c hola.c               # hello.c 파일의 이름을 hola.c 로 변경 가능
 ```
 
 _cp는 원본 파일이 남아있지만 mv는 원본 파일이 남아있지 않아 파일 이름 변경시에도 사용 가능하다._  
@@ -138,7 +138,7 @@ _cp는 원본 파일이 남아있지만 mv는 원본 파일이 남아있지 않�
 ### `whoami`  
 현재 로그인한 사용자의 id 출력
 
-```console
+```bash
 $ whoami
 pcc001
 ```
@@ -265,14 +265,15 @@ _lec01 실습: output device에 Hello World를 출력하도록 명령함
 
 ### `ssh`  
 리눅스 서버에 원격 접속할 때 사용하는 명령어
-```console
+
+```bash
 $ ssh pcc001@git.ajou.ac.kr
 ```
 
 ### `ps`  
 내가 실행하는 process 보고 싶을 때 사용하는 명령어  
 
-```console
+```bash
 $ ps
     PID    TTY      TIME        CMD
     5655   pts/8    00:00:00    bash
@@ -285,7 +286,7 @@ _bash를 실행하는 중 & ps 명령어도 실행되고 있었으므로 표시�
 ### `tty`  
 리눅스 device 중 콘솔/터미널을 의미함  
 
-```console
+```bash
 $ tty
 /dev/pts/8
 ```  
@@ -309,7 +310,9 @@ _permission 앞에 붙은 문자는 파일의 종류를 나타낸다._
 
 내 device pts가 존재하는 디렉토리  
 
-`crw--w----  1  hwan  tty  136,  8  1월  5  14:19  8`  
+```bash
+crw--w----  1  hwan  tty  136,  8  1월  5  14:19  8
+```  
 
 **Q**) 위 /dev/pts에 존재하는 8번 파일에 대해 설명하세요.  
 > 8이라고 하는 파일은 character device 입니다.  
@@ -337,12 +340,12 @@ message no = write permission turned off
 ### `man`  
 각종 명령어와 프로그램 사용법, 메뉴얼을 보여준다.
 
-```console
-$ man cat       ; cat 명령어의 메뉴얼을 보여준다.
+```bash
+$ man cat       # cat 명령어의 메뉴얼을 보여준다.
 ```  
 
-```console
-$ man cp        ; cp 명령어의 메뉴얼을 보여준다.
+```bash
+$ man cp        # cp 명령어의 메뉴얼을 보여준다.
 ```  
 
 <div style="text-align : center;">
@@ -373,7 +376,7 @@ $ man cp        ; cp 명령어의 메뉴얼을 보여준다.
 * ps -l: process가 상세히 보임
 * 명령어 자체에는 규칙성이 없지만 명령어의 옵션이나 syntex의 규칙은 서로 매우 비슷하다!  
 
-```console
+```bash
 $ ps -l
 F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
 0 S  4001 18126 18125  2  80   0 -  6054 wait   pts/2    00:00:00 bash
@@ -463,34 +466,34 @@ _이제 Hello World가 output.txt에 저장된다!_
 ### `sleep`  
 뒤 입력 초만큼 sleep 하는 명령어, kill하고 싶다면 **ctrl + c** 누르기  
 
-```console
-$ sleep 600             ; 600초, 10분 동안 sleep
+```bash
+$ sleep 600             # 600초, 10분 동안 sleep
 ```  
 
 ### `cat`  
 파일(들)을 순서대로 읽고 그 내용을 읽은 순서대로 표준 출력에 쓰는 명령  
 
-```console
+```bash
 $ cat  
-aaa                     ; 입력
-aaa                     ; 출력
-bbb                     ; 입력
-bbb                     ; 출력
+aaa                     # 입력
+aaa                     # 출력
+bbb                     # 입력
+bbb                     # 출력
 ```
 작업 끝내고 싶다면 **ctrl + d** 누르기  
 
 ### `vi 에디터로 편집 중에 ctrl + z 누른 경우`  
 process를 잠시 suspend 시킴 (보류)  
 
-```console
-$ vi hello.c            ; 편집 중에 ctrl + z 누른 뒤...
+```bash
+$ vi hello.c            # 편집 중에 ctrl + z 누른 뒤...
 [1]+    Stopped         vi hello.c  
 
 $ps
   PID  TTY          TIME CMD
-20145  pts/11    0:00.00 bash
-23919  pts/11    0:00.00 vi
-27662  pts/11    0:00.00 ps
+20145  pts/11    0:00:00 bash
+23919  pts/11    0:00:00 vi
+27662  pts/11    0:00:00 ps
 
 $ jobs
 [1]+    Stopped         vi hello.c 
@@ -498,8 +501,8 @@ $ jobs
 
 ### `Stopped 시킨 job으로 돌아가기`  
 **fg** = background 작업을 foreground로 옮기기
-```console
-$ fg %1             ; 1번 작업인 vi 에디터로 다시 돌아감  
+```bash
+$ fg %1             # 1번 작업인 vi 에디터로 다시 돌아감  
 ```
 
 ### `(sleep 1000 ; echo "pcc001 - 1000sec") &`  
@@ -507,9 +510,9 @@ $ fg %1             ; 1번 작업인 vi 에디터로 다시 돌아감
 * jobs 명령을 통해 현재 백그라운드에서 동작하고 있는 프로그램의 확인이 가능하다.  
 * 백그라운드 프로그램을 죽이고 싶다면 **kill -9 %번호**
 
-```console
-$ sleep 1000 ; echo "pcc001 - 1000sec" &            ; 앞 작업이 끝나야 뒤 작업 실행되므로 제대로 작동하지 않음
-$ (sleep 1000 ; echo "pcc001 - 1000sec") &          ; 묶어주면 background 작업으로 작동함
+```bash
+$ sleep 1000 ; echo "pcc001 - 1000sec" &            # 앞 작업이 끝나야 뒤 작업 실행되므로 제대로 작동하지 않음
+$ (sleep 1000 ; echo "pcc001 - 1000sec") &          # 묶어주면 background 작업으로 작동함
 ```
 
 ### `cat a.out`  
@@ -521,10 +524,11 @@ $ (sleep 1000 ; echo "pcc001 - 1000sec") &          ; 묶어주면 background �
 * concatenate files and print on the standard output  
 * 파일을 합쳐서 statndard output으로 보여주는 명령어  
 * ctrl + d 누르면 cat 프로그램 종료, (EOF)
-```console
+
+```bash
 $ cat
-aaa                 ; 파일이 없다면 statndard input을 입력으로 받아서
-aaa                 ; standard output에 출력한다.  
+aaa                 # 파일이 없다면 statndard input을 입력으로 받아서
+aaa                 # standard output에 출력한다.  
 ```
 * 터미널 사용할 때 기본 입력장치: 키보드, 기본 출력장치: 모니터  
 * 버퍼 종류 중에 대표적인 것: 한줄씩 보내줌.
@@ -540,26 +544,31 @@ aaa                 ; standard output에 출력한다.
 ### `date`  
 현재의 시간과 날짜를 stdout에 출력해주는 명령어  
 
-```console
-$ date > date.txt           ; stdout이 date.txt 파일로 리디렉션됨.  
+```bash
+$ date > date.txt           # stdout이 date.txt 파일로 리디렉션됨.  
 $ cat date.txt
 2022. 01. 05 (수) 16:02:23 KST  
 
-$ cat date.txt hello.c output.txt > total.txt            ;파일 3개가 total.txt로 concatenate됨.
-$ cat hello.c hello.c hello.c > hello3                   ; hello.c 3개가 hello3에 합쳐짐  
+$ cat date.txt hello.c output.txt > total.txt            
+# 파일 3개가 total.txt로 concatenate됨.
+$ cat hello.c hello.c hello.c > hello3                   
+# hello.c 3개가 hello3에 합쳐짐  
 
-$ cat < hello3                                             ; input으로 hello.c를 받아서 stdout에 출력함.
-$ cat hello3                                               ; cat < hello3와 동일  
+$ cat < hello3                                             
+# input으로 hello.c를 받아서 stdout에 출력함.
+$ cat hello3                                               
+# cat < hello3와 동일  
 
 $ cat < hello3 > hello4
-$ diff hello3 hello4        ; 두 파일은 동일한 파일이다.  
+$ diff hello3 hello4        # 두 파일은 동일한 파일이다.  
 
 $ cat hello.c hello.cpp 1>out.txt 2>err.txt 
-; hello.c 내용을 받아 stdout이 out.txt에 저장됨. hello.cpp 파일이 없어 발생한 에러 메세지는 err.txt에 저장된다.  
+# hello.c 내용을 받아 stdout이 out.txt에 저장됨. hello.cpp 파일이 없어 발생한 에러 메세지는 err.txt에 저장된다.  
 ```  
 
 ### `stdin, stdout, stderr redirection`  
 in.txt 파일에는 학번(201921085)이 저장되어있고 아래 코드는 hello.c 파일이다.
+
 ```c
 #include <stdio.h>
 
@@ -572,7 +581,7 @@ int main()
 }
 ```
 
-```
+```bash
 ./a.out < in.txt > out.txt 2>err.txt
 ```
 
@@ -589,7 +598,7 @@ int main()
 
 교수님의 코드를 카피하였더니 프롬프트가 초록색으로 변경되었다. (색 지정 O)  
 
-```console
+```bash
 cp ~hwan/.profile  ~hwan/.bashrc  ~hwan/.bash_logout ~
 source .profile
 ```  
@@ -603,33 +612,35 @@ source .profile
 
 ### `ls`  
 ls 명령어가 처음에 위치해 있는 곳은?? **storage**, storage에 들어있는 것은 파일이다.  
-```console
+
+```bash
 $ which ls
 /bin/ls
 ```  
 
 ### `PATH`  
 
-```console
-$ vi ls             ; ls에는 ls -lida 저장함
+```bash
+$ vi ls             # ls에는 ls -lida 저장함
 $ chmod +x ls
-$ ./ls              ; 직접 작성한 ./ls 실행됨
-$ ls                ; /bin/ls의 ls가 실행됨
+$ ./ls              # 직접 작성한 ./ls 실행됨
+$ ls                # /bin/ls의 ls가 실행됨
 ```  
 
 * 시스템 안에 존재하는 ls 중 무엇을 실행시킬지 순서를 정해야함: 환경변수 **PATH**  
 
-```console
+```bash
 $ echo $PATH
 /home/course/pcc039/bin:/home/course/pcc039/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:.
 ```  
+
 * source .profile을 통해 마지막줄 PATH="$HOME/bin:$HOME/.local/bin:$PATH:."이 실행되어 path가 추가되었다.
 
 * 따라서 lec02에 있는 a.out를 ./a.out으로 실행했어야 했는데 path를 추가한 뒤에는 a.out으로 실행시킬 수 있다.  
 
-```console
+```bash
 $ which a.out
-./a.out                         ; 현재 디렉토리 밑에 있는 a.out이 실행된다.
+./a.out                         # 현재 디렉토리 밑에 있는 a.out이 실행된다.
 ```  
 
 _그래도 .을 빼는 것이 보안상 안전하다..!_  
@@ -653,7 +664,7 @@ _그래도 .을 빼는 것이 보안상 안전하다..!_
 * MS word에서는 ASCII 코드가 아니라 유니코드임  
 
 <div style="text-align : center;">
-    <img src=./img/echo.png width="70%" >  
+    <img src=./img/echo.png width="60%" >  
 </div>  
 
 ### `gitignore`  
@@ -661,7 +672,7 @@ _그래도 .을 빼는 것이 보안상 안전하다..!_
 * git.ajou.ac.kr에서 내 폴더로 들어간 뒤 new file을 추가함  
 * template type을 .gitignore로 선택한 뒤, binary 파일을 git 서버에 백업하지 않도록 아래와 같이 작성하고 commit 하였다.
 
-```
+```bash
 *.out
 ```  
 
@@ -672,8 +683,8 @@ _그래도 .을 빼는 것이 보안상 안전하다..!_
 
 * . 으로 시작하는 파일은 hidden 파일이다.  
 
-```console
-$ file * .*             ; 모든 파일과 hidden 파일
+```bash
+$ file * .*             # 모든 파일과 hidden 파일
 README.md:  UTF-8 Unicode text  
 .:          directory
 ..:         directory
@@ -696,9 +707,9 @@ unicode는 1바이트, 2바이트, 4바이트, 8바이트로 이루어져 있다
 2. pcc001에 있는 모든 파일을 pcc 디렉토리 밑으로 옮기기  
     * 아래 코드는 2번 방법에 해당함
 
-```console
-$ mv pcc001/* .                 ; pcc 디렉토리에 hidden 파일은 안옮
-$ mv .git .gitignore ..         ; pcc 디렉토리로 옮김
+```bash
+$ mv pcc001/* .                 # pcc 디렉토리에 hidden 파일은 안옮
+$ mv .git .gitignore ..         # pcc 디렉토리로 옮김
 ```  
 
 ### `ssh & https`  
@@ -711,16 +722,16 @@ $ mv .git .gitignore ..         ; pcc 디렉토리로 옮김
 ### `pipe`  
 어떤 출력을 다음에 오는 명령어의 입력으로 넣는 명령어  
 
-```console
-$ ps -ael | grep ssh            ; ps -ael의 출력 중 ssh를 찾는 명령어
-$ who | wc                      ; who 결과의 라인수, 단어수, 글자수 세어줌
+```bash
+$ ps -ael | grep ssh            # ps -ael의 출력 중 ssh를 찾는 명령어
+$ who | wc                      # who 결과의 라인수, 단어수, 글자수 세어줌
 
 $ wc
 aaa bbbb cccc
-1   3   15                      ; 1글자, 3단어, 15글자 (글자 + 줄바꿈까지)
+1   3   15                      # 1글자, 3단어, 15글자 (글자 + 줄바꿈까지)
 
-$ grep aaa                      ; 파일 없이 standard input을 받아 해당 string이 나타나면 표시해줌  
-$ grep printf hello.c | wc      ; hello.c 파일의 printf 찾아 라인수, 단어수, 글자수 세어줌
+$ grep aaa                      # 파일 없이 standard input을 받아 해당 string이 나타나면 표시해줌  
+$ grep printf hello.c | wc      # hello.c 파일의 printf 찾아 라인수, 단어수, 글자수 세어줌
 ```  
 
 **Q**) 파이프는 어디에 있을까?  
@@ -731,7 +742,7 @@ $ grep printf hello.c | wc      ; hello.c 파일의 printf 찾아 라인수, 단
 * 따라서 파이프 만드는 명령어 `mkfifo mypipe`  
 * 파이프는 파일의 속성이 **p**이다!  
 
-```console
+```bash
 $ mkfifo mypipe
 ```
 
@@ -742,19 +753,19 @@ stdin을 받아서 stdout과 하나 이상의 파일에 그 입력을 출력하�
     <img src=./img/tee.png width="70%" >  
 </div>  
 
-```console
+```bash
 $ echo testing | tee test.txt
 test
 $ cat test.txt
 test
 
-$ ls -l | tee aaa           ; ls -l의 결과가 stdout에도 출력되고 aaa에도 저장된다. 
+$ ls -l | tee aaa           # ls -l의 결과가 stdout에도 출력되고 aaa에도 저장된다. 
 ```  
 
 ### `git 서버에 올리는 방법`  
 
-```console
-$ git pull                  ; 혹시 서버에서 update 한게 있다면 가져와 merge 함
+```bash
+$ git pull                  # 혹시 서버에서 update 한게 있다면 가져와 merge 함
 $ git add *
 $ git commit -m "Added something"
 $ git push
@@ -764,7 +775,7 @@ $ git push
 * vi ~/.gitconfig 파일에 아래 코드를 추가하면 nano 에디터가 아닌 vi 에디터가 실행된다.  
     * git commit 실행 후 파일에 commit message 적어서 저장해주면 commit message가 설정된다.  
 
-```
+```bash
 [editor]
     editor = vi
 [color]
@@ -798,23 +809,23 @@ $ git push
 * `2>`  : stderr의 출력을 파일의 출력으로 redirection
 * `2>>`  : stderr의 출력을 파일에 내용 추가 (append)  
 
-```console
+```bash
 $ echo hello > /tmp/out
 $ > /tmp/out echo hello             
-$ echo > /tmp/out hello                 ; 순서 바꿔도 상관 없음
+$ echo > /tmp/out hello                 # 순서 바꿔도 상관 없음
 $ echo hello >&2
-$ echo >&2 hello                        ; stdout을 stderr로 내보냄
+$ echo >&2 hello                        # stdout을 stderr로 내보냄
 $ read -r line < file            
 $ < file read -r line
 ```  
 
-```console
+```bash
 $ mycomm > outfile 2>&1 을 줄여서 mycomm &> outfile
 $ mycomm >> outfile 2>&1 을 줄여서 mycomm &>> outfile
 $ mycomm1 2>&1 | mycomm2 을 줄여서 mycomm1 |& mycomm2
 ```  
 
-```console
+```bash
 $ a.out <<< 300 &> out.txt
 $ more out.txt
 Hello stderr 300
@@ -832,19 +843,19 @@ Hello stdout 300
 * `here document`
 * `<<` == `0<<`  : 임시 파일을 만들어 stdin으로 연결  
 
-```console
-$ cat <<EOF         ; EOF 라고 타이핑하기 전까지는 계속 입력을 받으세요.
+```bash
+$ cat <<EOF         # EOF 라고 타이핑하기 전까지는 계속 입력을 받으세요.
 "200"
-EOF                 ; 입력 끝냄
+EOF                 # 입력 끝냄
 "200"
 ```  
 
-```console
+```bash
 $ cat <<QQQ
 > 200
 > Hi
 > Print
-> QQQ               ; 입력 끝냄
+> QQQ               # 입력 끝냄
 200
 Hi
 Print
@@ -853,18 +864,19 @@ Print
 * `here string`
 * `<<<`  : string을 stdin 입력으로 연결 (bash only)
 
-```console
-$ cat <<< $( echo -e "hello\nhere        string" )          ; $ == 명령어 실행한 결과
+```bash
+$ cat <<< $( echo -e "hello\nhere        string" )          
+# $ == 명령어 실행한 결과
 hello
 here        string
 
-$ cat <<< *               ; globbing 이 발생하지 않는다.
+$ cat <<< *               # globbing 이 발생하지 않는다.
 *
 ```
 
 ```c
-$ cat hello.c
-#include <stdio.h>
+//hello.c 파일
+#include <stdio.h>  
 
 int main()
 {
@@ -874,8 +886,11 @@ int main()
     fprintf(stderr, "Hello stderr %d\n", in_a);
 }
 
-$ cc hello.c            ; hello.c 컴파일하여 a.out 실행파일 생성됨.
-$ a.out <<< 99          ; here string, bash에서만 가능!
+```
+
+```bash
+$ cc hello.c            # hello.c 컴파일하여 a.out 실행파일 생성됨.
+$ a.out <<< 99          # here string, bash에서만 가능!
 Hello stdout 99
 Hello stderr 99
 ```
@@ -917,22 +932,22 @@ Hello stderr 99
 * [abc] = 대괄호 안의 하나의 문자를 일치
 * [a-c] =  대괄호 안의 범위에 속하는 하나의 문자를 일치  
 
-```console
-$ echo h*           ; h로 시작하는 파일 보여줌
+```bash
+$ echo h*           # h로 시작하는 파일 보여줌
 hello.c
 $ echo *.c
 hello.c
-$ echo ?????        ; 5글자 파일 보여줌
+$ echo ?????        # 5글자 파일 보여줌
 a.out
-$ echo ?????*       ; 5글자 넘는 파일 보여줌
-$ echo [abc]*       ; a/b/c로 시작하는 파일 보여줌
-$ echo [a-q]*       ; a~q로 시작하는 파일 보여줌
+$ echo ?????*       # 5글자 넘는 파일 보여줌
+$ echo [abc]*       # a/b/c로 시작하는 파일 보여줌
+$ echo [a-q]*       # a~q로 시작하는 파일 보여줌
 ```  
 
 ### `b.out | a.out`  
 
 ```c
-$ cat hello.c               ; a.out 실행파일
+//hello.c               # a.out 실행파일
 #include <stdio.h>
 
 int main()
@@ -942,10 +957,12 @@ int main()
     fprintf(stdout, "Hello stdout %d\n", in_a);
     fprintf(stderr, "Hello stderr %d\n", in_a);
 }
+```
 
-$ vi hello2.c               ; input을 받아 stdout으로 숫자 내보내는 코드 작성
+```bash
+$ vi hello2.c               # input을 받아 stdout으로 숫자 내보내는 코드 작성
 $ cc -o b.out hello2.c
-$ b.out | a.out             ; b.out의 출력이 a.out의 입력으로 들어가 실행됨
+$ b.out | a.out             # b.out의 출력이 a.out의 입력으로 들어가 실행됨
 999
 Hello stdout 999
 Hello stderr 999
@@ -953,14 +970,14 @@ Hello stderr 999
 
 ### `named pipe`  
 
-```console
+```bash
 # 첫번째 터미널에서..
 $ mkfifo pipe
 $ b.out > pipe
 99
 
 # 동시에 두번째 터미널에서..
-$ ./a.out < pipe        ; pipe에 담긴 99 읽어와서 실행 + 출력
+$ ./a.out < pipe        # pipe에 담긴 99 읽어와서 실행 + 출력
 Hello stdout 99
 Hello stderr 99
 ```  
@@ -971,9 +988,9 @@ _pipe: a.out라는 프로그램과 b.out라는 프로그램, 두 프로그램 �
 
 ### `vi pipe`
 
-```console
-$ vi pipe           ; vi 에디터로 pipe 열어서 12345 저장함
-$ cat < pipe        ; pipe에 저장한 것 보여줌..!
+```bash
+$ vi pipe           # vi 에디터로 pipe 열어서 12345 저장함
+$ cat < pipe        # pipe에 저장한 것 보여줌..!
 12345
 ```
 
@@ -1039,7 +1056,7 @@ int ifuncAdd(int a, int b)
 
 ### `(터미널에서) python 사용`  
 
-```python
+```bash
 $ python
 $ bin(-4)
 '-0b100'
@@ -1065,7 +1082,7 @@ $ bin(-7)
 ### `10진수를 2진수로 출력해주는 코드`
 
 ```c
-$ cat binary.c
+//binary.c
 # include <stdio.h>
 
 int main()
@@ -1081,7 +1098,8 @@ int main()
     }
     fprintf(stdout, "\n");
 }
-
+```
+```bash
 $ cc -o bin binary.c
 $ bin <<< 3
 0000 0000 0000 0000 0000 0000 0000 0011
@@ -1121,7 +1139,7 @@ $ bin <<< 3
 
 * python에서는..
 
-```python
+```bash
 $ bin(3)
 '0b11'
 $ bin(-3)
@@ -1130,7 +1148,7 @@ $ bin(-3)
 
 * 우리가 위에서 짠 bin 프로그램에서는..
 
-```
+```bash
 $ bin <<< 3
 0000 0000 0000 0000 0000 0000 0000 0011
 
@@ -1156,7 +1174,7 @@ $ bin <<< -3
 * 앞 코드에서 in_c = in_a & in_b 추가함
 
 ```c
-$ cat binary.c
+// binary.c
 # include <stdio.h>
 
 int main()
@@ -1190,10 +1208,12 @@ int main()
     fprintf(stdout, "\n");
     
 }
+```
 
+```bash
 $ cc -o bin binary.c
 $ bin
-100 -100                ; 100과 -100의 & operation
+100 -100                # 100과 -100의 & operation
 0000 0000 0000 0000 0000 0000 0110 0100
 1111 1111 1111 1111 1111 1111 1001 1100
 0000 0000 0000 0000 0000 0000 0000 0100
@@ -1203,7 +1223,7 @@ $ bin
 
 * 위 코드에서 in_c = in_a & in_b를 in_c = in_a >> 2로 수정해보았다.
 
-```console
+```bash
 $ bin
 -456 456
 1111 1111 1111 1111 1111 1110 0011 1000
@@ -1213,7 +1233,7 @@ $ bin
 
 * 그리고 a, b, c를 unsigned int로 바꿔서 실행해본 결과이다.
 
-```console
+```bash
 $ bin
 -456 456
 1111 1111 1111 1111 1111 1110 0011 1000
@@ -1277,7 +1297,7 @@ $ bin
 * binary.c 파일 아래와 같이 수정함
 
 ```c
-$ cat binary.c
+//binary.c
 # include <stdio.h>
 
 int main()
@@ -1304,7 +1324,7 @@ int main()
 * hello.c 아래와 같이 수정함 (실행파일 : a.out)
 
 ```c
-$ cat hello.c
+//hello.c
 #include <stdio.h>
 
 int main()
@@ -1324,7 +1344,9 @@ int main()
     siA = unA;
     fprintf(stdout, "signed integer : %d\n", siA);
 }
+```
 
+```bash
 $ a.out
 -1
 signed integer : -1
@@ -1366,7 +1388,148 @@ signed integer : -1
 
 * dd + p : 삭제 한 줄 붙여넣기
 
-//1시간 8분부터
+### `signed / unsigned & int / short`  
+
+```c
+// hello.c
+// siA와 sumS는 signed int 형
+// unA와 sumU는 unsigned int 형으로 선언함
+// shortS는 signed short, ushortS는 unsigned short로 선언
+// 이전코드에서 siA를 입력받아 unA에 넣어준 상황
+
+sumS = siA + (signed int) unA;
+sumU = (unsigned int) siA + unA;
+fprintf(stdout, "sumS %%d %d\n", sumS);
+fprintf(stdout, "sumS %%u %u\n", sumS);
+fprintf(stdout, "sumU %%d %d\n", sumU);
+fprintf(stdout, "sumU %%u %u\n", sumU);
+
+shortS = siA + unA;
+ushortS = siA + unA;
+fprintf(stdout, "sumS %%d %d\n", shortS);
+fprintf(stdout, "sumS %%u %u\n", shortS);
+fprintf(stdout, "sumU %%d %d\n", ushortS);
+fprintf(stdout, "sumU %%u %u\n", ushortS);
+```
+
+```bash
+$ cc hello.c
+$ ./a.out
+-1
+sumS %d -2
+sumS %u 4294967294
+sumU %d -2
+sumU %u 4294967294
+sumS %d -2
+sumS %u 4294967294
+sumU %d 65534
+sumU %u 65534
+```
+
+**Q**) 왜 실행한 결과의 마지막 2줄은 다르게 나왔을까?
+> signed int와 unsigned int를 더하여 unsigned short 형 변수에 저장하였으므로 자동으로 type casting이 일어났기 때문이다.
+
+**C언어에서는 연산시에 자동으로 type casting이 일어난다.**  
+
+```c
+shortS = siA + unA;
+ushortS = siA + unA;
+fprintf(stdout, "sumS %%d %d\n", shortS);
+fprintf(stdout, "sumS %%u %u\n", shortS);
+fprintf(stdout, "sumU %%d %d\n", ushortS);
+fprintf(stdout, "sumU %%u %u\n", ushortS);
+
+shortS = (short)siA + (short)unA;
+ushortS = (unsigned short)siA + (unsigned short)unA;
+fprintf(stdout, "sumS %%d %d\n", shortS);
+fprintf(stdout, "sumS %%u %u\n", shortS);
+fprintf(stdout, "sumU %%d %d\n", ushortS);
+fprintf(stdout, "sumU %%u %u\n", ushortS);
+```
+
+**따라서 위 코드에서 type casting이 자동으로 일어나 같은 결과가 출력된다.**
+
+`cc -W hello.c`  
+컴파일 시 모든 것에 대해 warning을 출력하고 싶을 때 사용한다.
+
+### `count1.c - 32bit integer에서 1의 개수 세는 프로그램`  
+
+```c
+//count1.c
+#include <stdio.h>
+#define VALUE_ONE 1
+
+//count number of 1 (binary)
+int count_one(unsigned int a){
+
+    int static numCalls = 0;
+    int count = 0;
+
+    while(a != 0){
+        count += a & VALUE_ONE;
+        a >>= VALUE_ONE;
+    }
+
+    fprintf(stderr, "Call : %d\n", numCalls);
+    numCalls++;
+
+    return count;
+}
+
+int main()
+{
+    int i;
+    int in_a;
+    fscanf(stdin, "%u", &in_a);
+    fprintf(stdout, "%u \t : ", in_a);
+    for(i = 31 ; i >= 0 ; i--){
+
+        fprintf(stdout, "%d", ((in_a >>i ) &1));
+        if (i % 4 == 0)
+            fprintf(stdout, " ");
+    }
+    count_one(in_a);
+    count_one(in_a);
+    count_one(in_a);
+    count_one(in_a);
+    fprintf(stdout, ": %d \n", count_one(in_a));
+
+}
+```
+
+* 위의 코드 설명 - 어떻게 1의 개수를 count할까?  
+a가 10진수로 6이라면 2진수로 0000 0000 0000 0000 0000 0000 0000 
+
+### `if문의 성능`  
+
+```c
+// sol1
+if((in_a >> i) & 1)
+    count++;
+
+// sol2
+count += in_a >> i & 1; 
+```
+
+* C operator precedence에 따라 shift를 먼저 하고 & operation을 하기 때문에 위 & 아래 코드의 연산은 같다.  
+
+* 대신 우선순위가 헷갈리기 때문에 괄호를 사용하는 것을 추천한다.
+
+* sol1과 sol2의 실행결과는 같은데 실행속도는 sol2가 빠르다.  
+    * if문은 굉장히 느리다. if문은 굉장히 비싼 operation이다.  
+
+```c
+c = a >> 1 + b;          //case 1
+c = (a >> 1) + b;        //case 2
+c = a >> (1 + b);        //case 3
+```
+
+* shift 연산이 곱하기 / 나누기와 우선순위가 같다고 오해할 수 있다. 하지만 shift 연산은 더하기와 빼기보다 우선순위가 낮다.
+
+* case 1의 결과는 case 2가 아닌 case 3과 같다!
+
+* 따라서 case case 1처럼 코드를 작성하고 a의 shift가 먼저 일어날 것이라고 오해할 수 있으므로, 헷갈리지 않도록 괄호를 사용하는 것을 권장한다.
+
 
 ***
 
@@ -1497,7 +1660,7 @@ c++에서는 inline이라는 것 있음 (함수의 코드 자체가 그대로 �
 ### `C Compile and Execution`  
 
 <div style="text-align : center;">
-    <img src=./img/compile.png width="70%" >  
+    <img src=./img/compile.png width="60%" >  
 </div>  
 
 ### `gcc -options`  
@@ -1673,7 +1836,7 @@ __LINE__    // Decimal number of current line
 * GNU C Extension  
 
 ```c
-$ cat hello.c
+//hello.c
 #include <stdio.h>
 
 void add(int *a, int *b, int *c)
@@ -1693,7 +1856,9 @@ int main()
         add(&a, &b, &c);
         fprintf(stdout, "%s %d : %d \n", __FILE__, __LINE__, c);
 }
+```
 
+```bash
 $ a.out
 100 : 140734210326444 7fff3c9d3fac
 200 : 140734210326448 7fff3c9d3fb0
@@ -1710,7 +1875,7 @@ hello.c 18 : 300
         fprintf(stdout, "%s %d : %d \n", __FILE__, __LINE__, c);
 ```
 
-* line define하면 line number가 증가하지 않는다.. -> 되도록이면 line number 지정하지 않기.
+* line define하면 line number가 증가하지 않는다. -> 되도록이면 line number 지정하지 않기.
 
 
 ***
