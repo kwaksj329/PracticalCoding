@@ -1048,12 +1048,6 @@ int ifuncAdd(int a, int b)
 * signed & unsigend: noun-adjective format  
 * 그래서 int나 char같은 타입 앞에 signed / unsigend를 쓴다.
 
-### `Memory model`  
-
-* Automatic
-* Static
-* Manual  
-
 ### `(터미널에서) python 사용`  
 
 ```bash
@@ -1462,6 +1456,138 @@ fprintf(stdout, "sumU %%u %u\n", ushortS);
 //count number of 1 (binary)
 int count_one(unsigned int a){
 
+    int count = 0;
+
+    while(a != 0){
+        count += a & VALUE_ONE;
+        a >>= VALUE_ONE;
+    }
+
+    return count;
+}
+
+int main()
+{
+    int i;
+    int in_a;
+    fscanf(stdin, "%u", &in_a);
+    fprintf(stdout, "%u \t : ", in_a);
+    for(i = 31 ; i >= 0 ; i--){
+
+        fprintf(stdout, "%d", ((in_a >>i ) &1));
+        if (i % 4 == 0)
+            fprintf(stdout, " ");
+    }
+    fprintf(stdout, ": %d \n", count_one(in_a));
+
+}
+```
+
+* 위의 코드 설명 - 어떻게 1의 개수를 count할까?  
+
+a가 10진수로 6이라면 2진수로 0000 0000 0000 0000 0000 0000 0000 0110이다.
+
+|  shift 횟수  |   a   |
+|:------:|:------:|
+|0번째|0000 0000 0000 0000 0000 0000 0000 0110|
+|1번째|0000 0000 0000 0000 0000 0000 0000 0011|
+|2번째|0000 0000 0000 0000 0000 0000 0000 0001|
+|3번째|0000 0000 0000 0000 0000 0000 0000 0000|
+
+따라서 1 (VALUE_ONE)과 a의 맨 마지막 bit 가 & 연산을 하여 1의 개수를 계산하기 때문에,  
+
+1번째 shift 결과와 2번째 shift 결과에서 & 연산을 통해 count에 1이 더해지게 된다.  
+
+따라서 6의 1의 개수는 2개임을 구할 수 있다.  
+
+
+### `if문의 성능`  
+
+```c
+// sol1
+if((in_a >> i) & 1)
+    count++;
+
+// sol2
+count += in_a >> i & 1; 
+```
+
+* C operator precedence에 따라 shift를 먼저 하고 & operation을 하기 때문에 위 & 아래 코드의 연산은 같다.  
+
+* 대신 우선순위가 헷갈리기 때문에 괄호를 사용하는 것을 추천한다.
+
+* sol1과 sol2의 실행결과는 같은데 실행속도는 sol2가 빠르다.  
+    * if문은 굉장히 느리다. if문은 굉장히 비싼 operation이다.  
+
+```c
+c = a >> 1 + b;          //case 1
+c = (a >> 1) + b;        //case 2
+c = a >> (1 + b);        //case 3
+```
+
+* shift 연산이 곱하기 / 나누기와 우선순위가 같다고 오해할 수 있다. 하지만 shift 연산은 더하기와 빼기보다 우선순위가 낮다.
+
+* case 1의 결과는 case 2가 아닌 case 3과 같다!
+
+* 따라서 case case 1처럼 코드를 작성하고 a의 shift가 먼저 일어날 것이라고 오해할 수 있으므로, 헷갈리지 않도록 괄호를 사용하는 것을 권장한다.
+
+### `Three basic memory model in C`  
+
+* signed / unsigned 는 int와 같은 자료형의 앞에 붙는다.  
+
+* 나머지 수식은 자료형의 뒤에 붙는다. (ex - const, auto, static)  
+    * ex- int const
+
+* `Automatic` : automatic 변수는 현재 블록이 끝나면 자동으로 사라지는 변수이다.  
+    * int 이렇게 선언하면 automatic이다.  
+    * 처음 사용할 때 변수를 선언한다.
+    * 범위를 벗어날 때 제거된다.  
+
+* `Static` : static 변수는 선언된 함수 내에서만 사용이 가능하며, 단 한번만 초기화를 하고 프로그램이 종료될 때까지 메모리 공간에 존재하는 변수이다.  
+    * 프로그램이 실행되는 동안 같은 공간에 존재한다.  
+    * Array sizes는 고정되지만 values는 변경 가능하다.  
+    * main 시작전에 데이터가 초기화된다. 따라서 계산을 필요로 하지 않는 상수를 사용하여 초기화해야 한다.  
+    * static 키워드로 함수 밖에서 선언된 variables (in file scope)와 함수 안에서 선언된 variables는 static이다.  
+    * static variable을 초기화 하지 않으면, zeros (or NULL)로 초기화된다.  
+
+* `Manual`  
+    * manual type에는 malloc과 free가 포함된다.  
+    * manual type만 array의 크기가 선언 이후에도 조정할 수 있다.  
+
+### `Noun-Adjective Form`  
+
+* `int const` A constant integer  
+
+* `int const *` A (variable) pointer to a constant integer  
+
+* `int * const` A constant pointer to a (variable) integer  
+
+* `int * const *` A pointer to a constant pointer to an integer  
+
+* `int const * *` A pointer to a pointer to a constant integer  
+
+* `int const * const *` A pointer to a constant pointer to a constant integer
+
+**Q**) `double (*f[10])(int const *a, double (*g[10])(double h));`의 의미는?  
+
+* 함수 이름이 f인 함수를 선언하였으며 이 함수는 double을 리턴한다.  
+
+* 함수 f는 크기가 10인 포인터의 array이며 첫번째 parameter는 int const 형태의 포인터 a이다.  
+
+* 두번째 parameter는 함수 이름이 g이고 크기가 10인 포인터의 array이다.
+
+* g 함수는 double을 리턴하며, double을 리턴하는 상수 h를 parameter로 가진다.  
+
+### `static 변수 예시`  
+
+```c
+//count1.c
+#include <stdio.h>
+#define VALUE_ONE 1
+
+//count number of 1 (binary)
+int count_one(unsigned int a){
+
     int static numCalls = 0;
     int count = 0;
 
@@ -1495,41 +1621,49 @@ int main()
     fprintf(stdout, ": %d \n", count_one(in_a));
 
 }
+```  
+
+* count_one 함수의 parameter로 signed int를 받게 되면 무한루프에 빠질 수 있다.  
+    * a가 signed int형 변수이고, 음수 데이터가 저장되어 있을 때, 오른쪽으로 shift를 계속해도 0이 되지 않고 계속 1이 채워지기 때문에 while문에서 무한루프에 빠지게 된다.  
+    * a가 unsigned int 형이면 오른쪽으로 shift할 때 맨 왼쪽에 0이 채워지게 되고, 그럼 while문 안에서 shift가 반복해서 일어나면 언젠가 a가 꼭 0이 된다.
+    * 따라서 입력이 음수일 때 무한루프에 빠지지 않기 위해서 count_one 함수의 parameter를 unsigned int a라고 선언해야한다.
+
+* count_one을 4번 호출한 결과로 아래와 같이 출력된다.  
+
+```
+Call: 0
+Call: 1
+Call: 2
+Call: 3
+Call: 4
 ```
 
-* 위의 코드 설명 - 어떻게 1의 개수를 count할까?  
-a가 10진수로 6이라면 2진수로 0000 0000 0000 0000 0000 0000 0000 
+* numCalls 변수가 int 형 변수라면 모두 0이 나왔겠지만, int static 변수이기 때문에 0, 1, 2, 3, 4가 출력되었다.  
 
-### `if문의 성능`  
+* numCalls 변수가 static 변수이기 때문에 한번만 초기화하고, 프로그램이 종료될 때까지 메모리 공간에 계속 존재하기 때문에 0으로 초기화되지 않고 값을 누적해서 출력한 것을 볼 수 있다.
+
+* static 변수는 초기화하지 않으면 자동으로 0 (또는 NULL)으로 초기화 되지만 automatic 변수는 초기화하지 않고 값을 출력해보면 랜덤한 값이 출력된다.  
+
+### `define`  
+
+* preprocessor는 반복되는 값이나 작업을 미리 정의할 때 사용하며, preprocessor에서 #define으로 매크로를 정의할 수 있다.  
+
+* #define 매크로이름 값 : 이렇게 매크로를 정의할 수 있다.  
+
+* 이러한 매크로를 사용하면 preprocessor를 거쳐 내부적으로 소스 코드가 일괄 변환되게 된다.
+
+### `const`  
+
+* const 변수는 값을 변경할 수 없다. 변수가 상수임을 선언하는 예약어이다.
+
+* 상수는 반드시 선언과 동시에 값을 할당하여 초기화해주어야 하며 초기화를 하지 않으면 컴파일 에러가 발생한다.
 
 ```c
-// sol1
-if((in_a >> i) & 1)
-    count++;
-
-// sol2
-count += in_a >> i & 1; 
+int const con = 100;
+con++;
 ```
 
-* C operator precedence에 따라 shift를 먼저 하고 & operation을 하기 때문에 위 & 아래 코드의 연산은 같다.  
-
-* 대신 우선순위가 헷갈리기 때문에 괄호를 사용하는 것을 추천한다.
-
-* sol1과 sol2의 실행결과는 같은데 실행속도는 sol2가 빠르다.  
-    * if문은 굉장히 느리다. if문은 굉장히 비싼 operation이다.  
-
-```c
-c = a >> 1 + b;          //case 1
-c = (a >> 1) + b;        //case 2
-c = a >> (1 + b);        //case 3
-```
-
-* shift 연산이 곱하기 / 나누기와 우선순위가 같다고 오해할 수 있다. 하지만 shift 연산은 더하기와 빼기보다 우선순위가 낮다.
-
-* case 1의 결과는 case 2가 아닌 case 3과 같다!
-
-* 따라서 case case 1처럼 코드를 작성하고 a의 shift가 먼저 일어날 것이라고 오해할 수 있으므로, 헷갈리지 않도록 괄호를 사용하는 것을 권장한다.
-
+* const 변수로 선언된 값은 변경이 불가능하므로 컴파일 time에 에러가 난다! ( increment of read-only variable 'con' )
 
 ***
 
