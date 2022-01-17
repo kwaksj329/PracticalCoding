@@ -18,7 +18,7 @@
 
 현재 디렉토리에 어떤 파일이 있는지 list를 보여주는 명령어  
 
-```
+```console
 $ ls -l                   ; 파일의 상세 정보 표시
 $ ls -a                   ; 숨어있는 파일들도 표시
 $ ls -al pcc001           ; pcc001 디렉토리의 모든 파일 표시
@@ -31,7 +31,7 @@ print working directory : 현재 디렉토리 보여줌
 ### `hostname`  
 내가 지금 어떤 컴퓨터를 쓰는지 알고싶다면 사용  
 
-```
+```console
 $ hostname  
 Kwakui-MacBookPro.local
 ```
@@ -53,7 +53,7 @@ who의 output 정렬해서 보여줌
 ### `mkdir`  
 디렉토리 생성하는 명령어  
 
-```
+```console
 $ mkdir pcc         ; pcc 디렉토리 생성, 이미 디렉토리가 존재한다면 에러 발생
 ```  
 
@@ -61,7 +61,7 @@ $ mkdir pcc         ; pcc 디렉토리 생성, 이미 디렉토리가 존재한�
 change directory  
 디렉토리를 이동하는 명령어
 
-```
+```console
 $ cd                ; cd 뒤에 디렉토리 입력 안하면 home directory로 이동
 $ cd ~              ; home directory로 이동, 위 명령어와 동일
 $ cd ..             ; 윗 디렉토리로 이동
@@ -91,7 +91,7 @@ hello.c 파일 컴파일 -> 기본적으로 a.out 실행파일 생성됨
 ### `mv`  
 파일을 이동시키는 명령어  
 
-```
+```console
 $ mv a.out hello.c pcc            ; a.out와 hello.c 파일을 pcc 디렉토리로 이동시킴  
 $ mv hello.c hola.c               ; hello.c 파일의 이름을 hola.c 로 변경 가능
 ```
@@ -137,14 +137,16 @@ _cp는 원본 파일이 남아있지만 mv는 원본 파일이 남아있지 않�
 
 ### `whoami`  
 현재 로그인한 사용자의 id 출력
-```
+
+```console
 $ whoami
 pcc001
 ```
 
 ### `cat`  
 어떤 파일의 내용을 보는 명령어
-```
+
+```c
 $ cat hello.c
 #include <stdio.h>
 
@@ -263,14 +265,14 @@ _lec01 실습: output device에 Hello World를 출력하도록 명령함
 
 ### `ssh`  
 리눅스 서버에 원격 접속할 때 사용하는 명령어
-```
+```console
 $ ssh pcc001@git.ajou.ac.kr
 ```
 
 ### `ps`  
 내가 실행하는 process 보고 싶을 때 사용하는 명령어  
 
-```
+```console
 $ ps
     PID    TTY      TIME        CMD
     5655   pts/8    00:00:00    bash
@@ -283,7 +285,7 @@ _bash를 실행하는 중 & ps 명령어도 실행되고 있었으므로 표시�
 ### `tty`  
 리눅스 device 중 콘솔/터미널을 의미함  
 
-```
+```console
 $ tty
 /dev/pts/8
 ```  
@@ -335,11 +337,11 @@ message no = write permission turned off
 ### `man`  
 각종 명령어와 프로그램 사용법, 메뉴얼을 보여준다.
 
-```
+```console
 $ man cat       ; cat 명령어의 메뉴얼을 보여준다.
 ```  
 
-```
+```console
 $ man cp        ; cp 명령어의 메뉴얼을 보여준다.
 ```  
 
@@ -371,7 +373,7 @@ $ man cp        ; cp 명령어의 메뉴얼을 보여준다.
 * ps -l: process가 상세히 보임
 * 명령어 자체에는 규칙성이 없지만 명령어의 옵션이나 syntex의 규칙은 서로 매우 비슷하다!  
 
-```
+```console
 $ ps -l
 F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
 0 S  4001 18126 18125  2  80   0 -  6054 wait   pts/2    00:00:00 bash
@@ -398,7 +400,7 @@ stdio.h 를 include 했기 때문에 표준입출력장치에 Hello World! 가 �
 
 **Q**) stdio.h 파일은 어디에 있을까?  
 > /usr/bin/include 에 stdio.h가 존재한다!  
-```
+```c
 extern struct _IO_FILE *stdin;
 extern struct _IO_FILE *stdout;
 extern struct _IO_FILE *stderr;
@@ -420,7 +422,7 @@ extern struct _IO_FILE *stderr;
 
 ### `lec02의 hello.c`  
 
-```
+```c
 #include <stdio.h>
 
 int main()
@@ -436,7 +438,7 @@ int main()
 
 ### `hello.c 수정한 버전`  
 
-```
+```c
 #include <stdio.h>
 
 int main()
@@ -461,14 +463,14 @@ _이제 Hello World가 output.txt에 저장된다!_
 ### `sleep`  
 뒤 입력 초만큼 sleep 하는 명령어, kill하고 싶다면 **ctrl + c** 누르기  
 
-```
+```console
 $ sleep 600             ; 600초, 10분 동안 sleep
 ```  
 
 ### `cat`  
 파일(들)을 순서대로 읽고 그 내용을 읽은 순서대로 표준 출력에 쓰는 명령  
 
-```
+```console
 $ cat  
 aaa                     ; 입력
 aaa                     ; 출력
@@ -479,7 +481,8 @@ bbb                     ; 출력
 
 ### `vi 에디터로 편집 중에 ctrl + z 누른 경우`  
 process를 잠시 suspend 시킴 (보류)  
-```
+
+```console
 $ vi hello.c            ; 편집 중에 ctrl + z 누른 뒤...
 [1]+    Stopped         vi hello.c  
 
@@ -495,7 +498,7 @@ $ jobs
 
 ### `Stopped 시킨 job으로 돌아가기`  
 **fg** = background 작업을 foreground로 옮기기
-```
+```console
 $ fg %1             ; 1번 작업인 vi 에디터로 다시 돌아감  
 ```
 
@@ -504,7 +507,7 @@ $ fg %1             ; 1번 작업인 vi 에디터로 다시 돌아감
 * jobs 명령을 통해 현재 백그라운드에서 동작하고 있는 프로그램의 확인이 가능하다.  
 * 백그라운드 프로그램을 죽이고 싶다면 **kill -9 %번호**
 
-```
+```console
 $ sleep 1000 ; echo "pcc001 - 1000sec" &            ; 앞 작업이 끝나야 뒤 작업 실행되므로 제대로 작동하지 않음
 $ (sleep 1000 ; echo "pcc001 - 1000sec") &          ; 묶어주면 background 작업으로 작동함
 ```
@@ -518,7 +521,7 @@ $ (sleep 1000 ; echo "pcc001 - 1000sec") &          ; 묶어주면 background �
 * concatenate files and print on the standard output  
 * 파일을 합쳐서 statndard output으로 보여주는 명령어  
 * ctrl + d 누르면 cat 프로그램 종료, (EOF)
-```
+```console
 $ cat
 aaa                 ; 파일이 없다면 statndard input을 입력으로 받아서
 aaa                 ; standard output에 출력한다.  
@@ -537,7 +540,7 @@ aaa                 ; standard output에 출력한다.
 ### `date`  
 현재의 시간과 날짜를 stdout에 출력해주는 명령어  
 
-```
+```console
 $ date > date.txt           ; stdout이 date.txt 파일로 리디렉션됨.  
 $ cat date.txt
 2022. 01. 05 (수) 16:02:23 KST  
@@ -557,7 +560,7 @@ $ cat hello.c hello.cpp 1>out.txt 2>err.txt
 
 ### `stdin, stdout, stderr redirection`  
 in.txt 파일에는 학번(201921085)이 저장되어있고 아래 코드는 hello.c 파일이다.
-```
+```c
 #include <stdio.h>
 
 int main()
@@ -586,7 +589,7 @@ int main()
 
 교수님의 코드를 카피하였더니 프롬프트가 초록색으로 변경되었다. (색 지정 O)  
 
-```
+```console
 cp ~hwan/.profile  ~hwan/.bashrc  ~hwan/.bash_logout ~
 source .profile
 ```  
@@ -600,14 +603,14 @@ source .profile
 
 ### `ls`  
 ls 명령어가 처음에 위치해 있는 곳은?? **storage**, storage에 들어있는 것은 파일이다.  
-```
+```console
 $ which ls
 /bin/ls
 ```  
 
 ### `PATH`  
 
-```
+```console
 $ vi ls             ; ls에는 ls -lida 저장함
 $ chmod +x ls
 $ ./ls              ; 직접 작성한 ./ls 실행됨
@@ -616,7 +619,7 @@ $ ls                ; /bin/ls의 ls가 실행됨
 
 * 시스템 안에 존재하는 ls 중 무엇을 실행시킬지 순서를 정해야함: 환경변수 **PATH**  
 
-```
+```console
 $ echo $PATH
 /home/course/pcc039/bin:/home/course/pcc039/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:.
 ```  
@@ -624,7 +627,7 @@ $ echo $PATH
 
 * 따라서 lec02에 있는 a.out를 ./a.out으로 실행했어야 했는데 path를 추가한 뒤에는 a.out으로 실행시킬 수 있다.  
 
-```
+```console
 $ which a.out
 ./a.out                         ; 현재 디렉토리 밑에 있는 a.out이 실행된다.
 ```  
@@ -669,7 +672,7 @@ _그래도 .을 빼는 것이 보안상 안전하다..!_
 
 * . 으로 시작하는 파일은 hidden 파일이다.  
 
-```
+```console
 $ file * .*             ; 모든 파일과 hidden 파일
 README.md:  UTF-8 Unicode text  
 .:          directory
@@ -693,7 +696,7 @@ unicode는 1바이트, 2바이트, 4바이트, 8바이트로 이루어져 있다
 2. pcc001에 있는 모든 파일을 pcc 디렉토리 밑으로 옮기기  
     * 아래 코드는 2번 방법에 해당함
 
-``` 
+```console
 $ mv pcc001/* .                 ; pcc 디렉토리에 hidden 파일은 안옮
 $ mv .git .gitignore ..         ; pcc 디렉토리로 옮김
 ```  
@@ -708,7 +711,7 @@ $ mv .git .gitignore ..         ; pcc 디렉토리로 옮김
 ### `pipe`  
 어떤 출력을 다음에 오는 명령어의 입력으로 넣는 명령어  
 
-```
+```console
 $ ps -ael | grep ssh            ; ps -ael의 출력 중 ssh를 찾는 명령어
 $ who | wc                      ; who 결과의 라인수, 단어수, 글자수 세어줌
 
@@ -728,7 +731,7 @@ $ grep printf hello.c | wc      ; hello.c 파일의 printf 찾아 라인수, 단
 * 따라서 파이프 만드는 명령어 `mkfifo mypipe`  
 * 파이프는 파일의 속성이 **p**이다!  
 
-```
+```console
 $ mkfifo mypipe
 ```
 
@@ -739,7 +742,7 @@ stdin을 받아서 stdout과 하나 이상의 파일에 그 입력을 출력하�
     <img src=./img/tee.png width="70%" >  
 </div>  
 
-```
+```console
 $ echo testing | tee test.txt
 test
 $ cat test.txt
@@ -750,7 +753,7 @@ $ ls -l | tee aaa           ; ls -l의 결과가 stdout에도 출력되고 aaa�
 
 ### `git 서버에 올리는 방법`  
 
-```
+```console
 $ git pull                  ; 혹시 서버에서 update 한게 있다면 가져와 merge 함
 $ git add *
 $ git commit -m "Added something"
@@ -795,7 +798,7 @@ $ git push
 * `2>`  : stderr의 출력을 파일의 출력으로 redirection
 * `2>>`  : stderr의 출력을 파일에 내용 추가 (append)  
 
-```
+```console
 $ echo hello > /tmp/out
 $ > /tmp/out echo hello             
 $ echo > /tmp/out hello                 ; 순서 바꿔도 상관 없음
@@ -805,13 +808,13 @@ $ read -r line < file
 $ < file read -r line
 ```  
 
-```
+```console
 $ mycomm > outfile 2>&1 을 줄여서 mycomm &> outfile
 $ mycomm >> outfile 2>&1 을 줄여서 mycomm &>> outfile
 $ mycomm1 2>&1 | mycomm2 을 줄여서 mycomm1 |& mycomm2
 ```  
 
-```
+```console
 $ a.out <<< 300 &> out.txt
 $ more out.txt
 Hello stderr 300
@@ -829,14 +832,14 @@ Hello stdout 300
 * `here document`
 * `<<` == `0<<`  : 임시 파일을 만들어 stdin으로 연결  
 
-```
+```console
 $ cat <<EOF         ; EOF 라고 타이핑하기 전까지는 계속 입력을 받으세요.
 "200"
 EOF                 ; 입력 끝냄
 "200"
 ```  
 
-```
+```console
 $ cat <<QQQ
 > 200
 > Hi
@@ -850,7 +853,7 @@ Print
 * `here string`
 * `<<<`  : string을 stdin 입력으로 연결 (bash only)
 
-```
+```console
 $ cat <<< $( echo -e "hello\nhere        string" )          ; $ == 명령어 실행한 결과
 hello
 here        string
@@ -859,7 +862,7 @@ $ cat <<< *               ; globbing 이 발생하지 않는다.
 *
 ```
 
-```
+```c
 $ cat hello.c
 #include <stdio.h>
 
@@ -914,7 +917,7 @@ Hello stderr 99
 * [abc] = 대괄호 안의 하나의 문자를 일치
 * [a-c] =  대괄호 안의 범위에 속하는 하나의 문자를 일치  
 
-```
+```console
 $ echo h*           ; h로 시작하는 파일 보여줌
 hello.c
 $ echo *.c
@@ -928,7 +931,7 @@ $ echo [a-q]*       ; a~q로 시작하는 파일 보여줌
 
 ### `b.out | a.out`  
 
-```
+```c
 $ cat hello.c               ; a.out 실행파일
 #include <stdio.h>
 
@@ -950,7 +953,7 @@ Hello stderr 999
 
 ### `named pipe`  
 
-```
+```console
 # 첫번째 터미널에서..
 $ mkfifo pipe
 $ b.out > pipe
@@ -968,7 +971,7 @@ _pipe: a.out라는 프로그램과 b.out라는 프로그램, 두 프로그램 �
 
 ### `vi pipe`
 
-```
+```console
 $ vi pipe           ; vi 에디터로 pipe 열어서 12345 저장함
 $ cat < pipe        ; pipe에 저장한 것 보여줌..!
 12345
@@ -978,7 +981,7 @@ $ cat < pipe        ; pipe에 저장한 것 보여줌..!
 
 ### `basic data type`  
 
-```
+```c
 int ifuncAdd(int a, int b)
 {
     return a+b;
@@ -1036,7 +1039,7 @@ int ifuncAdd(int a, int b)
 
 ### `(터미널에서) python 사용`  
 
-```
+```python
 $ python
 $ bin(-4)
 '-0b100'
@@ -1061,7 +1064,7 @@ $ bin(-7)
 
 ### `10진수를 2진수로 출력해주는 코드`
 
-```
+```c
 $ cat binary.c
 # include <stdio.h>
 
@@ -1118,7 +1121,7 @@ $ bin <<< 3
 
 * python에서는..
 
-```
+```python
 $ bin(3)
 '0b11'
 $ bin(-3)
@@ -1152,7 +1155,7 @@ $ bin <<< -3
 
 * 앞 코드에서 in_c = in_a & in_b 추가함
 
-```
+```c
 $ cat binary.c
 # include <stdio.h>
 
@@ -1200,7 +1203,7 @@ $ bin
 
 * 위 코드에서 in_c = in_a & in_b를 in_c = in_a >> 2로 수정해보았다.
 
-```
+```console
 $ bin
 -456 456
 1111 1111 1111 1111 1111 1110 0011 1000
@@ -1210,7 +1213,7 @@ $ bin
 
 * 그리고 a, b, c를 unsigned int로 바꿔서 실행해본 결과이다.
 
-```
+```console
 $ bin
 -456 456
 1111 1111 1111 1111 1111 1110 0011 1000
@@ -1273,7 +1276,7 @@ $ bin
 
 * binary.c 파일 아래와 같이 수정함
 
-```
+```c
 $ cat binary.c
 # include <stdio.h>
 
@@ -1300,7 +1303,7 @@ int main()
 
 * hello.c 아래와 같이 수정함 (실행파일 : a.out)
 
-```
+```c
 $ cat hello.c
 #include <stdio.h>
 
@@ -1375,5 +1378,339 @@ signed integer : -1
 
 ## Lecture 7
 ##### - 2022. 01. 13  
+
+* #if
+* #ifdef
+* #ifndef
+* #elif
+* #else
+* #endif
+
+```c
+#ifdef _VERSION_
+#if _VERSION_ >= 3
+    printf("Version is greater or equal than 3\n");
+
+```
+
+### `Order Expansion of Function Macro`  
+
+* Stringification
+* Parameters
+* Concatenation operations are replaced with the concatenated result of the two operands
+* Tokens
+
+***
+
+## Lecture 8
+##### - 2022. 01. 17  
+
+### `Macro 순서 예시`  
+
+```c
+#define HE HI
+#define LLO _THERE
+#define HELLO "HI THERE"
+#define CAT(a, b) a##b
+#define XCAT(a, b) CAT(a, b)
+#define CALL(fn) fn(HE, LLO)
+CAT(HE, LLO)    // "HI THERE", because concatenation occurs before normal expansion
+XCAT(HE, LLO),  // HI_THERE, because the tokens originating from parameters ("HE" and "LLO") are expanded first
+CALL(CAT)       // "HI THERE", because parameters are expanded first
+```
+
+_되도록이면 이런식으로 macro 사용하지 않기..! 이해하기 어렵다._
+
+* 간단한 단어들을 #define의 identifier로 사용하지 않기.
+
+### `Special Macro and Directives`  
+
+```c
+__FILE__
+__LINE__
+```
+
+### `Token stringification`  
+
+```c
+#define str(s)  #s
+str(p = "foo\n";)       //outputs "p = \"foo\\n";"
+```
+
+### `Token Concatenation`  
+
+* 왜 #define sq(a) a*a concatenation 해야하는가?  
+
+```c
+#define sq(a) a*a
+sq(B)
+#define sq(a) a##a##a
+sq(C)
+```
+
+* 붙여서 쓰고 싶을 때 concatenation 사용  
+
+### `GCC Optimization`  
+
+* 최적화에 대한 table 존재  
+
+### `함수의 메모리 공간`  
+
+```c
+int fun(int a){
+    
+    int b;
+    return a * a;
+}
+
+int main(){
+    int a = 100;
+    fun(a);
+}
+```
+
+* 실행하기 전에 필요한 데이터 넣어둠  
+
+* 함수가 호출되면 호출될 때 메모리 stack 만든다.  
+    * parameter a를 받기 위한 메모리
+    * int b를 위한 메모리
+    * return 값 저장하기 위한 메모리  
+
+* main에 있는 a와 함수에 있는 a는 다르다! 다른 위치의 메모리에 위치한다. 
+
+* optimize하면 사용하지 않는 변수인 int b를 사용하지 않는다.  
+
+**Q**) fn에서 return a * a하는 것과, main에서 b = a *a 하는 것의 차이는?
+
+**Q**) 함수를 만드는 것이 좋을까? 만들지 않는 것이 좋을까?  
+1. 성능은 어느쪽이 빠를까 (main 코드 vs 함수)  
+2. 코드 길이는 어떻게 구현하는 것이 짧을까
+
+**Q**) 함수는 stack 만드는 비용이 들어서 main 코드가 성능이 빠를 것 같은데 왜 함수를 사용하는가?
+> main함수나 다른 함수들에서 그 함수가 1000번 소스코드에 appear 된다고 가정하면, 코드의 길이 입장에서는 main에  당연히 함수로 만드는 것이 좋다.  
+c++에서는 inline이라는 것 있음 (함수의 코드 자체가 그대로 들어간다.)
+
+* #define으로 함수 정의하는 것은 잘 사용하기만 한다면 성능면에서와 코드 길이면에서 좋다!
+
+* #define으로 함수 정의하면 함수의 내용이 그대로 들어가게 된다.
+
+### `C Compile and Execution`  
+
+<div style="text-align : center;">
+    <img src=./img/compile.png width="70%" >  
+</div>  
+
+### `gcc -options`  
+
+* 옵션이 매우 많은데 중요한 것만 뽑은 내용이다..!
+
+* -std=<standard> Assume that the input sources are for <standard>.
+* -E Preprocess only; do not compile, assemble or link.
+* -S Compile only; do not assemble or link.
+* -c Compile and assemble, but do not link.
+* -o <file> Place the output into <file>.
+* -pie Create a position independent executable.
+* -shared Create a shared library.
+
+### `gcc machine option (x86 & x86 win)`  
+
+* 컴파일된 실행파일 a.out가 다른 기계에서도 실행되면 좋을 것 같을 때 machine option을 사용한다.  
+
+* arm에서 사용하도록 하고 싶다면 arm용 컴파일러를 설치하여야 한다.  
+
+* -m32 -m64 -mx32 -m16 
+
+### `gcc option: preprocessor`  
+
+* preprocessor가 질문하는 경우가 있다. 
+
+* -dI: include 파일은 이 디렉토리에서 가져오세요와 같이 설정
+
+### `Must Know..`  
+
+* 여기에 있는 내용은 꼭 알고 있기
+
+gcc [-c|-S|-E] [-std=standard]
+ [-g] [-pg] [-Olevel]
+ [-Wwarn...] [-Wpedantic]
+ [-Idir...] [-Ldir...]
+ [-Dmacro[=defn]...] [-Umacro]
+ [-foption...] [-mmachine-option...]
+ [-o outfile] [@file] infile...
+
+* -c : generate .o file
+* -g : for debug
+* -O : Optimization 
+* -E : generate preprocessing
+* -pg : for profile
+* -m32 -m64
+
+### `compile 순서와 옵션`  
+
+1. cc -E hello.c > hellocpp.c = c preprocessing, cpp 코드 만들어줌
+2. cc -S hellocpp.c = hellocpp.s 만들어짐, compile해서 assembly로 고쳐짐
+3. cc -c hellocpp.s = hellocpp.o 만들어짐, object 코드 만들어짐
+4. cc -o hellocpp hellocpp.o = 실행파일 hellocpp.out가 만들어진다!  
+
+### `CPP processing`  
+
+* Character set
+    * utf-8
+* Initial processing
+    1. LF, CR LF and CR processing
+    2. if –trigraphs
+    3. long line with “\” -> merge
+        * 긴줄, 여러줄 줄 바꿔서 쓰고 싶을 때 사용, 대신 c preprocessing 이 한줄로 다시 붙임
+    4. All comments -> “ ”
+
+* Tokenization with space
+    * #define foo() bar
+    * foo()bar -> bar bar    not    barbar    // use ## for concat
+
+* Preprocessing language
+    * inclusion of header / Macro Expansion / Conditional Compile / Line Control Diagnostics
+
+* od -x -c hello.c
+
+<div style="text-align : center;">
+    <img src=./img/od.png width="70%"/>  
+</div>
+
+* MS word 왼쪽, 오른쪽 구분되는 따옴표는 유니코드이다. -> C 언어에서 사용 불가!
+    * printf(“Hello World\n”"); 
+
+### `Macro Definition (1)`  
+
+* #define PI 3.14159 = 텍스를 대치줌
+
+* 괄호로 묶어주는 것이 안전하다.
+
+### `Macro Definition (2)`  
+
+* Multiple lines
+```c
+#define NUMBERS 1, \
+                2, \
+                3  
+```
+
+```c
+int x[] = { NUMBERS };  //int x[] = { 1, 2, 3 };  
+```
+
+* Define Where?
+
+```c
+    foo = X; 
+    #define X 4 
+    bar = X;    // foo = X and bar = 4
+```
+
+```c
+#define TABLESIZE BUFSIZE
+#define BUFSIZE 1024 // TABLESIZE -> BUFSIZE  -> 1024
+```
+
+```c
+#define BUFSIZE 1020
+#define TABLESIZE BUFSIZE
+#undef BUFSIZE
+#define BUFSIZE 37   // TABLESIZE = 37
+```
+
+### `Macro Definition (3) - Function like Macro`  
+
+* C언어에서 if 조건문은 성능을 떨어뜨리는데 C 언어에서 사용하는 ? 조건문은 생각보다 성능이 좋다.
+
+### `Macro Definition (4) - Stringization and concat`  
+
+* Stringization
+    * Parameter leading with #
+    * 
+* Concatenation
+    * #define
+
+### `Macro Definition (5) - Variadic`  
+
+```c
+eprintf ("%s:%d: ", input_file, lineno) 
+fprintf (stderr, "%s:%d: ", input_file, lineno)  
+
+#define eprintf(format, ...) fprintf (stderr, format __VA_OPT__(,) __VA_ARGS__)
+```
+
+* 뒤에 parameter들이 개수에 따라 여러개의 parameter 개수가 될 수 있는 함수 만들 수 있다. (생각보다 어려움..! 도전해보기)
+
+### `예시`  
+
+* Misnesting  
+
+```c
+#define twice(x) (2*(x))  
+#define call_with_1(x) x(1)  
+call_with_1 (twice)  // -> twice(1)  -> (2*(1))  
+
+#define strange(file) fprintf (file, "%s %d", strange(stderr) p, 35); // -> fprintf (stderr, "%s %d", p, 35);  
+```
+
+* Operator precedence  
+
+* Newline
+
+* 위 예시처럼 코드 짜지 않기.. 이해하기 어렵다. 실행이 되긴 된다.
+
+### `Predefined Macros`  
+
+* All Standards
+
+```c
+__FILE__    // Filename with full path string
+__LINE__    // Decimal number of current line
+```
+
+* C99
+
+* GNU C Extension  
+
+```c
+$ cat hello.c
+#include <stdio.h>
+
+void add(int *a, int *b, int *c)
+{
+        *c = *a + *b;
+}
+
+int main()
+{
+        int a = 100;
+        int b = 200;
+        int c = 999;
+        // int * = long long
+
+        fprintf(stdout, "%d : %lld %llx\n", a, (long long )&a, (long long)&a);
+        fprintf(stdout, "%d : %lld %llx\n", b, (long long)&b, (long long)&b);
+        add(&a, &b, &c);
+        fprintf(stdout, "%s %d : %d \n", __FILE__, __LINE__, c);
+}
+
+$ a.out
+100 : 140734210326444 7fff3c9d3fac
+200 : 140734210326448 7fff3c9d3fb0
+hello.c 18 : 300
+```
+
+```c
+#define ERR_DATA 1000
+#if ERR_DATA > 1000
+#error 1024
+#else
+#warning ERR_DATA
+#endif
+        fprintf(stdout, "%s %d : %d \n", __FILE__, __LINE__, c);
+```
+
+* line define하면 line number가 증가하지 않는다.. -> 되도록이면 line number 지정하지 않기.
+
 
 ***
