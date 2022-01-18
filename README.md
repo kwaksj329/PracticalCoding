@@ -664,7 +664,7 @@ _그래도 .을 빼는 것이 보안상 안전하다..!_
 * MS word에서는 ASCII 코드가 아니라 유니코드임  
 
 <div style="text-align : center;">
-    <img src=./img/echo.png width="60%" >  
+    <img src=./img/echo.png width="50%" >  
 </div>  
 
 ### `gitignore`  
@@ -1670,6 +1670,299 @@ con++;
 ## Lecture 6
 ##### - 2022. 01. 12   
 
+### `.bash_logout`  
+
+```bash
+if [ "$SHLVL" = 1 ]; then
+    [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q
+fi
+clear
+clear
+echo HAVE a NICE DAY - I am Sujong Kwak
+```  
+
+logout 시에 clear 명령으로 터미널 명령을 지우고, echo로 원하는 문장을 출력하도록 하였다.  
+
+### `alias`  
+
+alias = bash에 들어있는 built in 명령이다.  
+
+```bash
+$ alias -p
+alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+alias cc='cc -Wall'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias grep='grep --color=auto'
+alias h='history'
+alias l='ls -CF'
+alias la='ls -A'
+alias ll='ls -alF'
+alias ls='ls --color=auto'
+```
+
+* alias cc='cc -Wall' 을 통해 cc 명령어 실행시 자동으로 cc -Wall 명령으로 바뀌도록 할 수 있다.  
+
+* alias를 풀고 싶다면 unalias cc 사용  
+
+* 만약 alias를 사용하고 싶지 않다면 back slash('\')를 사용한다.  
+
+```bash
+$ ls            # alias 사용
+$ \ls           # alias 사용 X
+```
+
+* 로그아웃하면 없어지기 때문에 ~/.bashrc 에 alias 를 추가해야한다.  
+
+* source ~/.bashrc 로 실행하면 적용된다.
+
+### `오늘의 목표 - Pointer 이해하기`  
+
+* pointer basic
+    * &val - Address of val
+    * *ptr - Value in address val
+
+* increment
+    * int *a;       //a++ increment by 4
+        * a = integer를 가리키는 주소
+    * long long *b; //b++ increment by 8
+        * b = long long을 가리키는 주소
+    * void *c;      //c++ increment by 1
+
+### `&& 와 ;`
+
+```bash
+$ cc hello.c && a.out       #1
+$ cc hello.c ; a.out        #2
+```
+
+첫번째 명령은 hello.c가 에러가 나지 않을 때만 a.out가 실행되는 반면에,  
+두번째 명령은 hello.c가 에러나도 a.out가 항상 실행된다.  
+
+* 앞이 오류나지 않았을 때만 뒤 명령어 실행하고 싶다면 -> 명령어1 && 명령어2  
+
+* 앞이 오류났을 때 뒤 명령어를 실행하고 싶다면 -> 명령어1 || 명령어2  
+
+### `hello.c - a와 b의 주소`  
+
+```c
+#include <stdio.h>
+
+int main()
+{
+    int a = 100;
+    int b = 200;
+    fprintf(stdout, "%d : %d\n", a, &a);    # 100 : 1893560592
+    fprintf(stdout, "%d : %d\n", b, &b);    # 200 : 1893560596
+}
+```
+
+* a의 주소에서 int형 변수의 크기인 4바이트 떨어진 곳에 b가 위치한 것을 알 수 있다.  
+
+* int * -> long long -> lld로 출력하기! 16진수로 보고싶다면 llx로 출력한다.  
+
+* a와 *&a는 같다. *&a에 값을 넣을수도 있다. ( *&a = 500; )
+
+**Q**) 어떤 사람은 주소 결과가 음수로 나왔는데 왜일까?
+> 메모리 주소 길이가 오버플로우 났기 때문이다.  
+우리가 쓰고 있는 컴퓨터에서 int * 은 long long과 크기가 같다.
+
+**Q**) 8bit / 16bit / 32bit / 64bit 컴퓨터의 의미??
+> 한번에 처리 가능한 데이터의 크기, address line의 크기  
+한번의 hardware operation으로 처리할 수 있는 데이터의 길이  
+(대부분) 64bit 컴퓨터라면 데이터의 주소도 64bit length이다.  
+
+```c
+#include <stdio.h>
+
+int add(int a, int b)
+{
+    return a + b;
+}
+
+int main()
+{
+    int a = 100;
+    int b = 200;
+    int c;
+    // int * = long long 
+
+    fprintf(stdout, "%d : %lld %llx\n", a, &a, &a);
+    fprintf(stdout, "%d : %lld %llx\n", b, &b, &b);
+    c = add(a, b);
+    fprintf(stdout, "%d : %lld %llx\n", c, &c, &c);
+}
+```
+
+* 실행결과로 a, b, c의 주소가 4바이트씩 차이 나는 것을 볼 수 있다.  
+
+### `call by reference`  
+
+```c
+#include <stdio.h>
+
+int add(int *a, int *b)
+{
+    return *a + *b;
+}
+
+int main()
+{
+    int a = 100;
+    int b = 200;
+    int c;
+    // int * = long long 
+
+    fprintf(stdout, "%d : %lld %llx\n", a, &a, &a);
+    fprintf(stdout, "%d : %lld %llx\n", b, &b, &b);
+    c = add(&a, &b);
+    fprintf(stdout, "%d : %lld %llx\n", c, &c, &c);
+}
+```
+
+* call by reference도 실행결과 동일하게 잘 실행된다!  
+
+```c
+//a, b, c는 주소가 4바이트씩 차이난다.  
+int a = 100;
+int b = 200;
+int c = 999;
+```
+
+**Q**) 이때 `*(a + 4)`는 값이 b의 값인 200일까? [ **X** ]  
+
+**Q**) 이때 `*(a + 8)`는 값이 c의 값인 999일까? [ **X** ]  
+
+**Q**) 이때 `*(a + 1)`는 값이 b의 값인 200일까? [ **O** ]  
+
+**Q**) 이때 `*(a + 2)`는 값이 c의 값인 999일까? [ **O** ]  
+
+* a가 int 형이기 때문에 +1을 하게 되면 4바이트가 더해진다.  
+따라서 +1을 하면 4바이트 더해진 주소에 위치한 b값에 접근한다.  
+그리고 +2를 하면 8바이트 더해진 주소에 위치한 c값에 접근하게 된다.  
+
+```c
+#include <stdio.h>
+
+void add(int *a, int *b, int *c)
+{
+    *c = *a + *b;
+}
+
+int main()
+{
+    const int a = 100;
+    int b = 200;
+    const int c = 999;
+    // int * = long long 
+
+    fprintf(stdout, "%d : %lld %llx\n", a, &a, &a);
+    fprintf(stdout, "%d : %lld %llx\n", b, &b, &b);
+    add(&a, &b, &c);
+    fprintf(stdout, "%d : %lld %llx\n", c, &c, &c);
+}
+```  
+
+* c가 const int 형임에도 불구하고 값에 바뀔 수 있다.  
+    * c의 포인터를 통해 값을 변경할 수 있다.  
+
+```c
+#include <stdio.h>
+
+void add(int *a, int *b, int *c)
+{
+    *c = *a + *b;
+}
+
+int main()
+{
+    const int a = 100;
+    int b = 200;
+    long long c = 999;
+    // int * = long long 
+
+    fprintf(stdout, "%d : %lld %llx\n", a, &a, &a);
+    fprintf(stdout, "%d : %lld %llx\n", b, &b, &b);
+    add(&a, &b, &c);
+    fprintf(stdout, "%d : %lld %llx\n", c, &c, &c);
+    fprintf(stdout, "%d : %lld %llx\n", c, (&c)+1, &c+1);
+    //fprintf(stdout, "%d : %lld %llx\n", c, ((void *)(&c))+1, &c+1);
+    //원래는 long long 포인터인데 void 포인터로 바껴서 1씩 증가됨 (char 포인터도 1씩 증가)
+    fprintf(stdout, "%d : %lld %llx\n", c, (&c)+2, &c+2);
+}
+```
+
+* 어떤 주소에 1을 더하는 것은 그 데이터 타입의 값(크기)를 더한다!  
+
+* (&c) + 1 이나 (&c) + 2 의 경우에도 주소가 어떤 데이터의 주소인지 물어보게 된다.  
+따라서 주소에 + 1 이나 주소에 + 2 되지 않는다.  
+c가 long long 형이므로 주소에 + 8바이트, 주소에 + 16바이트가 더해진 결과를 얻을 수 있다.  
+
+* 정말로 주소에 딱 1만 더하고 싶다면 ((void *)(&c))+1 를 사용해야 한다.  
+    * 그럼 c가 long long의 포인터였다가 void 포인터로 바뀌게 되어 1씩 증가된다.  
+    * void와 char 포인터는 1씩 증가하기 때문이다.  
+
+* const는 automatic과 비슷하지만 다른 점은 이 값을 change하려 하면 컴파일러가 에러를 발생시킨다.  
+
+<div style="text-align : center;">
+    <img src=./img/three_model.png width="60%" >  
+</div>  
+
+### `int an_array[] vs int *a_pointer`  
+
+* int an_array[32];
+    * Program will do;
+    * set aside a space on the stack big enough for 32 integers, 
+    * declare that an_array is a pointer, and  
+    * bind that pointer to point to the newly allocated space  
+    * an_array라고 하는 포인터를 만든다!!
+    * an_array는 배열의 시작 부분을 가리키고 있다.
+    * an_array 값이 저장되는 공간은 8바이트이다. 포인터이기 때문에!
+
+* int *a_pointer;
+    * Just pointer
+    * a_pointer = malloc(32*4);
+    * 포인터에게 어떤 값을 주기 전까지는 제대로 된 값을 갖고있는지 아닌지 알 수 없다.  
+
+### `array & pointer`  
+
+```c
+#include <stdio.h>
+
+int sumArray3(int *a, int sum)
+{   
+    sum = *a;
+    a++;
+    sum += *a;
+    a++;
+    sum += *a;
+    fprintf(stdout, "%d : %lld %llx\n", sum, &sum, &sum);
+    return a[3];
+}
+int main()
+{
+    int a = 100;
+    int b = 200;
+    int c = 999;
+    const int arr[4] = {100, 200, 300, 400};
+    int *parr;
+    parr = arr;
+    parr++;
+    fprintf(stdout, "%d : %lld %lld\n", *parr, parr, arr);
+    c = sumArray3(arr, b);
+    fprintf(stdout, "%d : %lld %llx\n", b, &b, &b);
+    fprintf(stdout, "%d : %lld %llx\n", arr, arr, arr);
+    fprintf(stdout, "%d : %lld %llx\n", *arr, *arr, *arr);
+    fprintf(stdout, "%d : %lld %llx\n", &arr, &arr, &arr);
+    fprintf(stdout, "%d : %lld %llx\n", arr[2], &arr[2], &arr[2]);
+    fprintf(stdout, "%d : %lld %llx\n", arr[3], &arr[3], &arr[3]);
+}
+```
+
+
+
+//2시간 4분
+
 ***
 
 
@@ -2011,5 +2304,80 @@ hello.c 18 : 300
 
 * line define하면 line number가 증가하지 않는다. -> 되도록이면 line number 지정하지 않기.
 
+
+***
+
+## Lecture 9
+##### - 2022. 01. 18  
+
+### `아주고정소수점`  
+
+* 아주대학교의 임베디드 시스템을 위한 고정소수점 수학 라이브러리 개발  
+
+### `debug`  
+
+```bash
+$ ./a.out
+200 200
+Segmentation fault (core dumped)
+
+$ cc -g test.c
+test.c: In function ‘main’:
+test.c:41:21: warning: format ‘%d’ expects argument of type ‘int *’, but argument 4 has type ‘int’ [-Wformat=]
+  fscanf(stdin, "%d %d", &ia, ib);
+
+$ file a.out
+a.out: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=a4867b47f1cd5e4faf38b42c8bde146a4cfc100d, with debug_info, not stripped
+
+# a.out 파일에 디버깅 내용 들어가서 크기가 확 커짐
+
+$ gdb a.out
+```
+
+### `gdb`
+
+```
+(gdb) run
+Starting program: /home/course/pcc001/pcc/lec09/a.out
+500 500
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff7a53932 in _IO_vfscanf_internal (s=s@entry=0x7ffff7dcfa00 <_IO_2_1_stdin_>, format=<optimized out>,
+    argptr=argptr@entry=0x7fffffffe0f0, errp=errp@entry=0x0) at vfscanf.c:1898
+1898	vfscanf.c: No such file or directory.
+
+(gdb) where
+#0  0x00007ffff7a53932 in _IO_vfscanf_internal (s=s@entry=0x7ffff7dcfa00 <_IO_2_1_stdin_>, format=<optimized out>,
+    argptr=argptr@entry=0x7fffffffe0f0, errp=errp@entry=0x0) at vfscanf.c:1898
+#1  0x00007ffff7a60356 in __isoc99_fscanf (stream=0x7ffff7dcfa00 <_IO_2_1_stdin_>, format=<optimized out>)
+    at isoc99_fscanf.c:34
+#2  0x000055555555485d in main () at test.c:41
+
+(gdb) pwd
+Working directory /home/course/pcc001/pcc/lec09.
+
+(gdb) list
+1893	in vfscanf.c
+
+(gdb) list main
+32	{
+33		return a + b;
+34	}
+35
+36	int main()
+37	{
+38		long long i=0;
+39		int ia, ib, ic, ic2;
+40		float fa;
+41		fscanf(stdin, "%d %d", &ia, ib);
+```  
+
+* test.c의 main함수에서 fscanf 실행했는데.. call stack
+
+* 한줄씩 실행: step  
+
+* next
+
+* 계속 run: continue  
 
 ***
