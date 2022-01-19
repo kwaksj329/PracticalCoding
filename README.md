@@ -2035,9 +2035,295 @@ parr++;
 
 ***
 
-
 ## Lecture 7
 ##### - 2022. 01. 13  
+
+### `Noun-Adgective Form - 중요한 차이점!`  
+
+* `int const * A` : int가 상수 정수이며 이를 가리키는 포인터
+    * int 상수값은 변경될 수 없다. 대신 이를 가리키는 포인터는 변경될 수 있다.
+
+* `int * const A` : 이 포인터는 상수 포인터인데 변수는 int를 가리키고 있다.
+    * int 값은 변경될 수 있다! 주소는 변경 불가능
+
+### `함수의 포인터 연습`  
+
+```c
+void mul(int *a, int *b, int *c)
+{ *c = *a + *b;}
+
+int main()
+{
+    int const a = 100;
+    int b = 200;
+    int c = 9999;
+    int *p = &a;
+    fprintf(stdout, "a, b, c: %d %d %d\n", a, b, c);
+    *p = 200;
+    fprintf(stdout, "a, b, c: %d %d %d\n", a, b, c);
+```
+
+* 만약 a에 다른 값을 그대로 넣으면 에러가 발생한다.
+    * assignment of read-only variable 'a'
+
+* 그런데 위 코드처럼 a의 주소를 p에 넣고, p가 가리키는 a의 주소에 들어있는 값을 변경하면 a의 값이 변하게 된다.  
+
+* const로 선언한 것이 주소를 통해서 값이 바뀐다면 어떤 의미가 있을까?
+    * error / warning이 나오게 하려는 의미가 있다! (위 코드에서 warning 발생 O)
+
+```c
+int * const p = &a;         // case 1
+p = &b;
+
+int const * p = &a;         // case 2
+p = &b;
+```
+
+1. 포인터가 const인데 b의 주소로 바뀌었으니 에러가 발생한다!  
+
+2. int 상수 값은 변하면 안되지만 이를 가리키는 포인터는 변해도 된다.
+    * 따라서 2번째 경우에는 에러가 발생하지 않는다!
+
+```c
+void *fp();         // 함수의 포인터
+fp = mul;           // 에러 발생
+fp(a, b, c)
+
+void (*fp)();
+fp = mul
+fp(&a, &b, &c);
+```
+
+* fp가 가리키는 함수 mul은 parameter 3가지 모두 포인터로 받고 있기 때문에 fp를 호출할 때에도 a, b, c의 주소값을 넘겨줘야한다.  
+
+* mul 과 mul()의 차이점
+    * 선언문에 mul()은 함수를 선언한 것이다.  
+    * 실행문에 mul()은 함수를 실행하라는 것이다.  
+    * 따라서 실행문에는 mul을 사용해야한다.  
+
+### `void (*fp[4])(int *, int *, int *) = {add, sub, mul, div};`  
+
+* 포인터가 4개인 array이며, parameter는 int *, int *, int * 형을 받는다.
+
+* 그리고 그 포인터 4개는 add, sub, mul, div 함수를 각각 가리킨다.  
+
+```c
+//fnpointer.c
+#include <stdio.h>
+
+void add(int *a, int *b, int *c)
+{ *c = *a + *b;}
+
+void sub(int *a, int *b, int *c)
+{ *c = *a - *b;}
+
+void div(int *a, int *b, int *c)
+{ *c = (*a) / (*b);}
+
+void mul(int *a, int *b, int *c)
+{ *c = (*a) * (*b);}
+
+
+int main()
+{
+    int a = 100;
+    int b = 200;
+    int c = 0;
+    char ch;
+    int op = 0;
+    scanf("%d %c %d", &a, &ch, &b);
+
+    void (*fp[4])(int *, int *, int *) = {add, sub, mul, div};
+
+    switch(ch){
+        case '+':
+            op = 0;
+            break;
+        case '-':
+            op = 1;
+            break;
+        case '*':
+            op = 2;
+            break;
+        case '/':
+            op = 3;
+            break;
+    }
+
+    fprintf(stdout, "a, b, c: %d %d %d\n", a, b, c);
+    fp[op](&a, &b, &c);
+    fprintf(stdout, "a, b, c: %d %d %d\n", a, b, c);
+    fprintf(stdout, "fp %lld %lld %lld %lld\n", add, sub, mul, div);
+}
+```
+
+* 입력받은 숫자를 사칙연산하는 프로그램 (함수의 포인터 배열 이용)  
+
+* lld로 add, sub, mul, div를 출력하면?
+    * 함수의 주소가 출력된다.
+
+### `od`
+a.out 코드 어떻게 생겼는지 보고싶다면 od 명령어를 사용한다.
+
+```bash
+$ od a.out
+$ od -x a.out       # 16진수로 보여줌
+```
+
+### `오늘의 목표`  
+
+* C compile process  
+* CPP - C Preprocessor
+* Compile options
+
+<div style="text-align : center;">
+    <img src=./img/compile.png width="60%" >  
+</div> 
+
+1. compile - compile 명령 넣음  
+preprocessor directive - C언어에서 #
+
+2. compile user source code - # 되어있던 것 모두 바뀜  
+Assembly 를 생성함
+
+3. Link Assembler - printf, scanf와 같은 함수들과 연결시켜줌 & 실행파일 만들어줌  
+    1. static link - printf, scanf와 같은 것을 그냥 실행파일에 붙여줌
+        * 실행파일 사이즈 커짐, 대신 항상 어떤 기계에서든 실행됨
+    2. dynamic link - dynamic library에 있는 함수를 쓰게함
+        * 보안상의 이유 등으로 사용, 성능상으로 약간의 문제 있을 수 있다
+
+4. loader, loads the executable code into memory
+    * 주소는 실행될 때 결정된다. (실행될 때 메모리에 a.out가 load 된다)
+
+* Natural language
+* program language
+    1. 한줄 바꿔서 실행하기 반복 = interpreter
+        * ex - python
+    2. 프로그램 전체 번역해서 한번에 실행코드 생성 = compiler
+        * ex - C
+* Machine language
+
+### `gcc compile options`  
+
+gcc [-c|-S|-E] [-std=standard]
+ [-g] [-pg] [-Olevel]
+ [-Wwarn...] [-Wpedantic]
+ [-Idir...] [-Ldir...]
+ [-Dmacro[=defn]...] [-Umacro]
+ [-foption...] [-mmachine-option...]
+ [-o outfile] [@file] infile...
+
+* -c : generate .o file
+    * preprocessing & compile 까지만 실행
+* -g : for debug
+* -O : Optimization  
+    * 최적화, 의미가 없는 코드는 아예 지워버린다. (빨라짐!)
+* -E : generate preprocessing
+    * preprocessing만 실행 -> .c 파일 만들어짐
+* -pg : for profile
+* -m32 -m64
+    * 32bit / 64bit 컴파일
+    * 64bit는 32bit에서 실행 불가
+    * 32bit는 64bit에서 실행 가능
+
+### `gcc option : preprocessor`  
+
+ -Aquestion=answer -A-question[=answer] -C -CC -Dmacro[=defn] -dD -dI
+ -dM -dN -dU -fdebug-cpp -fdirectives-only -fdollars-in-identifiers
+ -fexec-charset=charset -fextended-identifiers -finput-charset=charset
+ -fmacro-prefix-map=old=new -fno-canonical-system-headers -fpch-deps
+ -fpch-preprocess -fpreprocessed -ftabstop=width -ftrack-macro-expansion
+ -fwide-exec-charset=charset -fworking-directory -H -imacros file
+ -include file -M -MD -MF -MG -MM -MMD -MP -MQ -MT
+ -no-integrated-cpp -P -pthread -remap -traditional -traditional-cpp
+ -trigraphs -Umacro -undef -Wp,option -Xpreprocessor option
+
+> 잘 정리된 문서로 옵션 정리 해보기..!  
+
+### `gcc compile - for multiple file`
+
+```c
+//func.h
+#define DF(a) ((a) * (a))
+extern int func1(int x);
+
+//func.c
+#include "func.h"
+int func1(int a)
+{
+    return (a * 10);
+}
+int func2(int a)
+{
+    return (a * 2);
+}
+
+//main.c
+#include <stdio.h>
+#include "func.h"
+
+int main()
+{
+    fprintf(stdout, "func %d %d\n", func1(100), DF(10));
+    //func 110 100
+}
+```  
+
+`gcc main.c func.c`  
+
+1. main.c 컴파일 -> stdio.h preprocessing -> func.h preprocessing  
+
+2. func.h의 DF(a) 대입해주고, func1에 대해 extern임을 마킹해둠  
+
+3. main.o 파일 생성  
+
+4. func.c 컴파일 -> func.h 파일 가져옴, object file 만듦  
+
+5. 링킹 - printf & func1 에 대해 링크를 걸어둠.  
+
+    * printf - dynamic link  
+
+    * func1 - static link  
+
+**main.c에서 func2를 사용하고 싶다면 func.h에 반드시 extern 선언을 해주어야한다.**  
+
+* extern int func2(int x);
+
+`cc -c main.c` : main.c -> main.o 생성해줌 (컴파일 : source code -> object code)
+`cc -c func.c` : func.c -> func.o 생성해줌 (컴파일 : source code -> object code)
+`cc main.o func.o` : a.out 실행파일 만들어줌  
+
+이 상태에서 main.c를 수정했다면 `cc main.c func.o` 로 실행한다.  
+
+func.c를 수정했다면 `cc func.c main.o` 로 실행한다.  
+
+**Q**) 왜 이렇게 실행할까?
+> 만약 func.c를 컴파일 할 때 많은 시간이 걸리고, func.c를 수정하지 않았다면 object code인 func.o를 그대로 사용한다.  
+main.c를 수정했다면 main.c와 이전에 생성한 func.o를 컴파일해주면 된다.  
+
+### `C preprocessor (CPP)`  
+
+1. include head files  
+2. define macro  
+3. conditional compilation  
+4. line control  
+
+### `CPP - include file`
+
+* #include file as text  
+    * #include <stdio.h> or "file.h"  
+
+* gcc Option - I
+    * Include location - ./usr/include/
+    * default include location
+
+* prevent multiple include
+    * #pragma once
+    * #ifndef \_MATH_
+    * #include <math.h>
+    * #endif
+
+### `CPP - conditional compilation`  
 
 * #if
 * #ifdef
@@ -2050,8 +2336,111 @@ parr++;
 #ifdef _VERSION_
 #if _VERSION_ >= 3
     printf("Version is greater or equal than 3\n");
-
+#elif _VERSION_ == 2
+#error VERSION 2 IS NOT SUPPORTED
+#endif
+#endif  //ifdef _VERSION_
 ```
+
+* 버전이 3보다 크면 print문을 출력한다.
+
+* 버전이 2와 같다면 에러가 발생한다.
+
+* ifdef의 짝은 마지막 endif로, \_VERSION_ 이 정의되어있다면 조건을 만족하게 하고, 아니라면 점프한다.  
+
+### `Macro Definition`  
+
+* #define <identifier> <replcement tokenlist>
+    * object
+* #define <identifier> (<parameter list>) <replacement token list>
+    * function-like macro, note parameters
+
+* ex - #define f(a) ((a) * (a)) : 의도는 제곱!
+
+**위 예시에서 주의할 점! 무조건 parameter에 괄호치기**
+
+[ **good ex** ] #define f(a) ((a) * (a))
+> f(20+13)으로 사용하면 ((20+13) * (20+13))이 되어 의도대로 작동한다. 
+
+[ **bad ex** ] #define f(a) a*a
+> f(20+13)으로 사용하고자 했다면 20 + 13 * 20 + 13이 되어 의도대로 작동하지 않는다.
+
+<div style="text-align : center;">
+    <img src=./img/func.png width="45%" >  
+</div>  
+
+* cc -E func.c를 통해 func.h에 있던 extern 코드가 func.c로 온 것을 볼 수 있다.
+    * -E : preprocessing option
+
+* func.h에서 define한 DF(a)를 func.c에서 사용하면 DF(a) 대신에 ((a)*(a))가 들어가게 된다.
+
+* func.h의 메크로를 수정했다고 해보자.
+    * 수정한 이후에 기존에 생성한 object code를 cc main.o func.c 로 컴파일 했다면
+    * 수정한 내용이 반영되어 작동하지 않는다!
+
+**func.h처럼 수정된 메크로를 사용하는 모든 소스코드는 반드시 다시 컴파일해야한다.**
+
+따라서 모두 다시 컴파일해야하기 때문에 메크로를 자주 수정하는 것은 좋지 않다.  
+
+```c
+#define DF(a) ((-a) * (a))      //의도한대로 잘 동작하지 않는다.
+DF(a+1) == ((-a+1) * (a+1))     //이렇게 작동한다.
+
+#define DF(a) (-(a) * (a))
+DF(a+1) == (-(a+1) * (a+1)) 
+```
+
+* 첫번째처럼 작성하면 10을 대입했을 때 -11 * 11이 나오지 않는다.
+    * 대신 -9 * 11이 계산된다.
+
+* 두번째처럼 작성하면 -11 * 11로, 의도대로 잘 작동한다.
+    * 따라서 괄호 적절하게 무조건 사용하기!
+
+**ex**) main.c와 func.h 두 파일에서 #include <stdio.h> 를 사용했다면?  
+
+* main.c에서 두번 include 된다. 그럼 오류가 날 가능성이 있다.
+
+* 따라서 func.h에 #pragma once 를 사용한다. 그럼 이 파일은 한번만 include 된다.
+
+```c
+#ifdef __FUNC_
+#define __FUNC_ 0
+//codes....
+#endif
+```
+
+* 또는 위 코드와 같이 func.h에서 __FUNC_가 정의되어 있다면 ifdef 아래 코드를 실행하고, 아니면 점프를 하게 할 수 있다.
+    * 그러면 __FUNC_ 가 정의되지 않았을 때 한번만 실행하게 되고, 두번째 로딩할 때는 ifdef의 아래 코드가 실행되지 않는다.
+
+```c
+#ifndef __FUNC_
+
+#define __FUNC_ 0
+
+#if FUNCTION_NEGATIVE == 1
+#define DF(a) (-(a)*(a))
+#else
+#define DF(a) ((a) * (a))
+#endif
+
+extern int func1(int x);
+extern int func2(int x);
+
+#endif
+```
+
+1. __FUNC_가 정의되어있지 않다면 그 아래 코드 실행, 정의되어 있다면 점프한다.  
+
+2. FUNCTION_NEGATIVE가 1이라면 #define DF(a) (-(a)*(a)) 로 작동한다.  
+
+3. FUNCTION_NEGATIVE가 1이 아니라면 #define DF(a) ((a) * (a)) 로 작동한다.
+
+* #if 0 ~~~ #endif = 이 코드를 사용하지 않겠다! (command 처리하기 복잡할 때 사용하면 좋다.)
+
+***
+
+## Lecture 8
+##### - 2022. 01. 17  
 
 ### `Order Expansion of Function Macro`  
 
@@ -2059,11 +2448,6 @@ parr++;
 * Parameters
 * Concatenation operations are replaced with the concatenated result of the two operands
 * Tokens
-
-***
-
-## Lecture 8
-##### - 2022. 01. 17  
 
 ### `Macro 순서 예시`  
 
