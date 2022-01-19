@@ -1571,17 +1571,23 @@ c = a >> (1 + b);        //case 3
 
 ### `Noun-Adjective Form`  
 
-* `int const` A constant integer  
+* `int const A` constant integer  
+    * const가 뒤에서 앞으로 int를 수식함
 
-* `int const *` A (variable) pointer to a constant integer  
+* `int const * A ` (variable) pointer to a constant integer 
+    * const가 int를 수삭한다. A는 const int를 가리키는 포인터이다.
 
-* `int * const` A constant pointer to a (variable) integer  
+* `int * const A` constant pointer to a (variable) integer 
+    * int를 가리키고 있는 포인터인데 그 포인터가 const이다.
 
-* `int * const *` A pointer to a constant pointer to an integer  
+* `int * const * A` pointer to a constant pointer to an integer  
+    * int를 가리키는 const 포인터를 가리키는 포인터, 이 포인터 값은 변할 수 있다.
 
-* `int const * *` A pointer to a pointer to a constant integer  
+* `int const * * A` pointer to a pointer to a constant integer  
+    * const int를 가리키는 포인터의 포인터, 두 포인터 다 변경될 수 있다.
 
-* `int const * const *` A pointer to a constant pointer to a constant integer
+* `int const * const * A` pointer to a constant pointer to a constant integer 
+    * const int를 가리키는 const 포인터의 포인터
 
 **Q**) `double (*f[10])(int const *a, double (*g[10])(double h));`의 의미는?  
 
@@ -1920,7 +1926,7 @@ c가 long long 형이므로 주소에 + 8바이트, 주소에 + 16바이트가 �
 * const는 automatic과 비슷하지만 다른 점은 이 값을 change하려 하면 컴파일러가 에러를 발생시킨다.  
 
 <div style="text-align : center;">
-    <img src=./img/three_model.png width="50%" >  
+    <img src=./img/three_model.png width="45%" >  
 </div>  
 
 ### `int an_array[] vs int *a_pointer`  
@@ -1942,6 +1948,7 @@ c가 long long 형이므로 주소에 + 8바이트, 주소에 + 16바이트가 �
 ### `array & pointer`  
 
 ```c
+//sumarr.c
 #include <stdio.h>
 
 int sumArray3(int *a, int sum)
@@ -1974,9 +1981,57 @@ int main()
 }
 ```
 
+* arr = integer가 아닌 long long이다.  
 
+* *arr = a[0]이다.  
 
-//2시간 4분
+* arr = &arr = 배열의 시작 부분 주소이다.
+
+* arr[0], arr[1], arr[2], arr[3]은 4바이트씩 떨어져있다.
+
+* arr를 4개짜리로 선언했지만 arr[4]를 print해보면 arr[3]에서 4바이트 떨어진 주소가 출력된다.
+    * arr 길이가 4인데 5번째를 access 할 수 있다는 것이 이상하다..!
+    * 에러가 나는 것이 정상인데 나지 않는다.
+
+* call by reference - 주소에 대한 데이터 변경하면 주소에 있는 값 변경된다.
+
+* call by value - value 값이 함수에서 아무리 바꾸려해도 바뀌지 않는다.  
+
+* Segmentation fault ( core dumped ) - memory protection
+    * a.out 를 실행할 때 주어진 공간을 벗어나서 접근했 때 발생한다.  
+    * segmentation violation
+    * core dumped - core라고 하는 파일에 프로그램의 snapshot이 만들어짐
+
+```c
+sum = a[0];         // a[0] = sum = 100
+sum += *(a+1);      // *(a+1) = a[1] = 200
+sum += *(a+2);      // *(a+2) = a[3] = 300
+
+sum = *a;           // *a = sum = 100
+a++;                // a++ = a는 a[1]의 주소가 됨
+sum += *a;          // *a = sum = 200
+a++;                // a++ = a는 a[2]의 주소가 됨
+sum += *a;          // *a = sum = 300
+```
+
+* *a + 1; 이나 *a + 2는 *a인 100에 1과 2를 더한 것이므로 101과 102이다.  
+    * value operater는 더하기보다 우선순위가 더 낮다.
+
+* 반면 *(a+1)는 a가 int형 포인터이므로 +1이 4바이트로 더해져 a[1]의 값인 200이 된다.  
+
+* 그리고 *(a+2)도 a가 int형 포인터이므로 +2이 8바이트로 더해져 a[2]의 값인 300이 된다.  
+
+* a 변수를 increment / decrement 할 수 있으므로 a의 저장공간이 있다는 것을 알 수 있다.
+
+```c
+int *parr;
+parr = arr;
+parr++;
+```
+
+* *parr = 200이 출력됨!
+
+* parr에 int 형 배열의 주소를 담고 있는 arr이 저장되었기 때문에 parr++ 하면 arr[1]의 위치를 가리키게 된다. 따라서 *parr은 200이다.
 
 ***
 
