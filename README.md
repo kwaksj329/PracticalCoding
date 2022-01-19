@@ -6,6 +6,21 @@
 
 ***
 
+## Contents  
+
+1. [ Lecture 1 ](#lecture-1)
+2. [ Lecture 2 ](#lecture-2)
+3. [ Lecture 3 ](#lecture-3)
+4. [ Lecture 4 ](#lecture-4)
+5. [ Lecture 5 ](#lecture-5)
+6. [ Lecture 6 ](#lecture-6)
+7. [ Lecture 7 ](#lecture-7)
+8. [ Lecture 8 ](#lecture-8)
+9. [ Lecture 9 ](#lecture-9)
+10. [ Lecture 10 ](#lecture-10)
+
+***
+
 ## Lecture 1  
 
 ##### - 2022. 01. 04   
@@ -1752,8 +1767,8 @@ int main()
 {
     int a = 100;
     int b = 200;
-    fprintf(stdout, "%d : %d\n", a, &a);    # 100 : 1893560592
-    fprintf(stdout, "%d : %d\n", b, &b);    # 200 : 1893560596
+    fprintf(stdout, "%d : %d\n", a, &a);    // 100 : 1893560592
+    fprintf(stdout, "%d : %d\n", b, &b);    // 200 : 1893560596
 }
 ```
 
@@ -1905,7 +1920,7 @@ c가 long long 형이므로 주소에 + 8바이트, 주소에 + 16바이트가 �
 * const는 automatic과 비슷하지만 다른 점은 이 값을 change하려 하면 컴파일러가 에러를 발생시킨다.  
 
 <div style="text-align : center;">
-    <img src=./img/three_model.png width="60%" >  
+    <img src=./img/three_model.png width="50%" >  
 </div>  
 
 ### `int an_array[] vs int *a_pointer`  
@@ -2336,7 +2351,7 @@ $ gdb a.out
 
 ### `gdb`
 
-```
+```bash
 (gdb) run
 Starting program: /home/course/pcc001/pcc/lec09/a.out
 500 500
@@ -2379,5 +2394,382 @@ Working directory /home/course/pcc001/pcc/lec09.
 * next
 
 * 계속 run: continue  
+
+***
+
+
+## Lecture 10
+##### - 2022. 01. 19  
+
+### `(1) coredump 시키는 방법 & gdb`  
+
+```bash
+$ vi coredump.c
+$ cc -g coredump.c
+coredump.c: In function ‘main’:
+coredump.c:3:12: warning: division by zero [-Wdiv-by-zero]
+  int a = 10/0;
+            ^
+$ ./a.out
+Floating point exception (core dumped)
+-rw-------  1 pcc001 pcc 245760  1월 19 13:40 core      # core 생성됨
+$ gdb a.out core      # gdb 실행
+$ rm core             # 메모리를 낭비하기 때문에 디버깅이 끝나고 core 삭제하기
+
+# core생성 안될 때 (관리자가 sudo 안해줬을 때)
+$ cd /var/lib/apport/coredump/ 에 core가 위치함
+$ cd ~/pcc/lec10
+$ gdb a.out /var/lib/apport/coredump/core._home_course_pcc001_pcc_lec10_a_out.4001.34e8117c-1278-4ea4-a8b5-e6131460d25d.22969.84048070
+
+(gdb) where
+#0  0x00005621a9052609 in main () at coredump.c:3
+```
+
+* coredump = a.out를 실행하며 생긴 메모리를 통째로 dump한 것
+    * 따라서 에러가 난 현재 메모리 상태를 볼 수 있다.
+
+### `(2) visual studio 2022에서 debug`  
+
+* new project -> empty project 생성 -> source files -> add -> new item -> c++ File(cpp)에서 hello.c로 생성 -> c 코드 작성  
+
+```c
+#include <stdio.h>
+
+int main(){
+    int a = 100;
+    printf("Hello World\n");
+    a = a / 0;
+}
+```
+
+* f5누르면 컴파일  
+
+* release mode : cc로 컴파일
+    * cd /c/Users/hwany/source/repos/Project2/x64/Debug/Project2.exe -> exe 실행파일이 여기에 위치해있다! (소스코드 있는 디렉토리에 위치 X)
+
+* debug : cc -g와 동일
+
+* n번 라인에서 break하기: debug 모드에서 line 수 옆의 dot 누르기 (누르면 빨간색 점이 됨)  -> break point 생성됨, 계속하고 싶다면 continue 누르기
+
+* step into, next
+
+* autos에 a 값 보여줌 == gdb에서의 print a 기능과 같다.  
+
+### `gprof - GNU Profiling`  
+
+```bash
+$ cc -pg test.c
+$ a.out
+$ ls -al
+-rw-r--r--  1 pcc001 pcc  714  1월 19 15:45 gmon.out
+$ gprof a.out gmon.out
+# call graph 볼 수 있다.
+
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+ 31.98      0.07     0.07 33554432     2.10     2.10  toFloat
+ 29.69      0.14     0.07                             main
+ 18.27      0.18     0.04 16777216     2.40     2.40  fromFloat
+ 13.70      0.21     0.03 16777216     1.80     8.39  fxAdd
+  6.85      0.22     0.02 16777216     0.90     0.90  fxAdd2
+
+# self: 이 함수 안에서 발생했던 time 
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 4.52% of 0.22 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]    100.0    0.07    0.16                 main [1]
+                0.03    0.11 16777216/16777216     fxAdd [2]
+                0.02    0.00 16777216/16777216     fxAdd2 [5]
+-----------------------------------------------
+                0.03    0.11 16777216/16777216     main [1]
+[2]     63.6    0.03    0.11 16777216         fxAdd [2]
+                0.07    0.00 33554432/33554432     toFloat [3]
+                0.04    0.00 16777216/16777216     fromFloat [4]
+-----------------------------------------------
+                0.07    0.00 33554432/33554432     fxAdd [2]
+[3]     31.8    0.07    0.00 33554432         toFloat [3]
+-----------------------------------------------
+                0.04    0.00 16777216/16777216     fxAdd [2]
+[4]     18.2    0.04    0.00 16777216         fromFloat [4]
+-----------------------------------------------
+                0.02    0.00 16777216/16777216     main [1]
+[5]      6.8    0.02    0.00 16777216         fxAdd2 [5]
+-----------------------------------------------
+
+# i += 25로 바꿔서 10배 더 느리게 실행된 결과
+
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+ 25.80      0.67     0.67 343597384     1.96     1.96  toFloat
+ 21.95      1.25     0.57                             main
+ 19.25      1.75     0.50 171798692     2.93     2.93  fromFloat
+ 18.48      2.23     0.48 171798692     2.81     9.65  fxAdd
+ 11.94      2.54     0.31 171798692     1.81     1.81  fxAdd2
+  3.08      2.62     0.08                             frame_dummy
+
+granularity: each sample hit covers 2 byte(s) for 0.38% of 2.62 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     96.9    0.57    1.97                 main [1]
+                0.48    1.18 171798692/171798692     fxAdd [2]
+                0.31    0.00 171798692/171798692     fxAdd2 [5]
+-----------------------------------------------
+                0.48    1.18 171798692/171798692     main [1]
+[2]     63.2    0.48    1.18 171798692         fxAdd [2]
+                0.67    0.00 343597384/343597384     toFloat [3]
+                0.50    0.00 171798692/171798692     fromFloat [4]
+-----------------------------------------------
+                0.67    0.00 343597384/343597384     fxAdd [2]
+[3]     25.7    0.67    0.00 343597384         toFloat [3]
+-----------------------------------------------
+                0.50    0.00 171798692/171798692     fxAdd [2]
+[4]     19.2    0.50    0.00 171798692         fromFloat [4]
+-----------------------------------------------
+                0.31    0.00 171798692/171798692     main [1]
+[5]     11.9    0.31    0.00 171798692         fxAdd2 [5]
+-----------------------------------------------
+                                                 <spontaneous>
+[6]      3.1    0.08    0.00                 frame_dummy [6]
+-----------------------------------------------
+
+```
+
+* 함수의 호출은 매우 비싸다!
+
+```c
+fixed32 fxAdd(fixed32 a, fixed32 b)
+{
+        //return fromFloat((toFloat(a) + toFloat(b)));
+        return (fixed32)((((float)(a)) * FX_2_MINUS_16 + ((float)(b)) * FX_2_MINUS_16) * FX_2_PLUS_16);
+
+}
+```
+
+```bash
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+ 54.23      0.68     0.68 171798692     3.98     3.98  fxAdd
+ 27.91      1.04     0.35 171798692     2.05     2.05  fxAdd2
+ 13.56      1.21     0.17                             main
+  4.79      1.27     0.06                             toFloat
+
+  granularity: each sample hit covers 2 byte(s) for 0.79% of 1.27 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     95.2    0.17    1.04                 main [1]
+                0.68    0.00 171798692/171798692     fxAdd [2]
+                0.35    0.00 171798692/171798692     fxAdd2 [3]
+-----------------------------------------------
+                0.68    0.00 171798692/171798692     main [1]
+[2]     54.0    0.68    0.00 171798692         fxAdd [2]
+-----------------------------------------------
+                0.35    0.00 171798692/171798692     main [1]
+[3]     27.8    0.35    0.00 171798692         fxAdd2 [3]
+-----------------------------------------------
+                                                 <spontaneous>
+[4]      4.8    0.06    0.00                 toFloat [4]
+-----------------------------------------------
+```
+
+* 함수의 호출이 비싸기 때문에 이렇게 바꿔서 수정해봄
+
+* function call을 하지 않았더니 거의 2배 더 빨라진 결과를 얻을 수 있었다.
+
+```c
+//macro를 call 하도록 함
+#define fromFloat(fa) ((fixed32)( (fa) * FX_2_PLUS_16))
+#define toFloat(xa) (((float)(xa)) * FX_2_MINUS_16)
+```
+
+```bash
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+ 46.79      0.61     0.61 171798692     3.57     3.57  fxAdd
+ 30.68      1.01     0.40 171798692     2.34     2.34  fxAdd2
+ 16.11      1.23     0.21                             main
+  6.90      1.32     0.09                             toFloat_fn
+
+granularity: each sample hit covers 2 byte(s) for 0.76% of 1.32 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     93.1    0.21    1.01                 main [1]
+                0.61    0.00 171798692/171798692     fxAdd [2]
+                0.40    0.00 171798692/171798692     fxAdd2 [3]
+-----------------------------------------------
+                0.61    0.00 171798692/171798692     main [1]
+[2]     46.6    0.61    0.00 171798692         fxAdd [2]
+-----------------------------------------------
+                0.40    0.00 171798692/171798692     main [1]
+[3]     30.5    0.40    0.00 171798692         fxAdd2 [3]
+-----------------------------------------------
+                                                 <spontaneous>
+[4]      6.9    0.09    0.00                 toFloat_fn [4]
+-----------------------------------------------
+```
+
+* 10~20% 오차 발생할 수 있음  
+
+```c
+//test2.c
+#include <stdio.h>
+
+int fxMul1(int a, int b)
+{
+    return a * b;
+}
+
+int fxMul2(int a, int b)
+{
+    return (int)((long long) a * (long long) b);
+}
+
+int main()
+{
+    long long i=0;
+    int ia, ib, ic, ic2;
+    float fa;
+    //fscanf(stdin, "%d %d", &ia, &ib);
+    for(i = 0; i < (long long )256 * 256 * 256 * 256 ; i += 25)
+    {
+        ic = fxMul1(i, i);
+    }
+    for(i = 0; i < (long long )256 * 256 * 256 * 256 ; i += 25)
+    {
+        ic = fxMul2(i, i);
+    }
+}
+```
+
+```bash
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+ 43.32      0.56     0.56                             main
+ 32.87      0.99     0.43 171798692     2.49     2.49  fxMul2
+ 20.89      1.26     0.27 171798692     1.58     1.58  fxMul1
+  3.48      1.31     0.05                             frame_dummy
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.76% of 1.31 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     96.5    0.56    0.70                 main [1]
+                0.43    0.00 171798692/171798692     fxMul2 [2]
+                0.27    0.00 171798692/171798692     fxMul1 [3]
+-----------------------------------------------
+                0.43    0.00 171798692/171798692     main [1]
+[2]     32.7    0.43    0.00 171798692         fxMul2 [2]
+-----------------------------------------------
+                0.27    0.00 171798692/171798692     main [1]
+[3]     20.8    0.27    0.00 171798692         fxMul1 [3]
+-----------------------------------------------
+                                                 <spontaneous>
+[4]      3.5    0.05    0.00                 frame_dummy [4]
+-----------------------------------------------
+```
+
+* cc -pg -m32 test2.c       //32bit 컴퓨터용으로 컴파일 함
+* a.out
+
+```bash
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+ 46.16      0.79     0.79                             main
+ 24.25      1.21     0.42 171798692     2.43     2.43  fxMul1
+ 13.15      1.44     0.23 171798692     1.32     1.32  fxMul2
+ 12.27      1.65     0.21                             __x86.get_pc_thunk.bx
+  3.51      1.71     0.06                             __x86.get_pc_thunk.dx
+  0.58      1.72     0.01                             __gmon_start__
+  0.58      1.73     0.01                             _dl_relocate_static_pie
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.58% of 1.73 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     83.1    0.79    0.64                 main [1]
+                0.42    0.00 171798692/171798692     fxMul1 [2]
+                0.23    0.00 171798692/171798692     fxMul2 [3]
+-----------------------------------------------
+                0.42    0.00 171798692/171798692     main [1]
+[2]     24.1    0.42    0.00 171798692         fxMul1 [2]
+-----------------------------------------------
+                0.23    0.00 171798692/171798692     main [1]
+[3]     13.1    0.23    0.00 171798692         fxMul2 [3]
+-----------------------------------------------
+                                                 <spontaneous>
+[4]     12.2    0.21    0.00                 __x86.get_pc_thunk.bx [4]
+-----------------------------------------------
+                                                 <spontaneous>
+[5]      3.5    0.06    0.00                 __x86.get_pc_thunk.dx [5]
+-----------------------------------------------
+                                                 <spontaneous>
+[6]      0.6    0.01    0.00                 __gmon_start__ [6]
+-----------------------------------------------
+                                                 <spontaneous>
+[7]      0.6    0.01    0.00                 _dl_relocate_static_pie [7]
+-----------------------------------------------
+
+$ file a.out
+a.out: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=e6b9b35bc23da8fcf7462c1df17b7a2c6063cb88, not stripped
+```
+
+* 굉장히 오차가 많이 때문에 통계적인 기법을 사용해서 테스팅해보는 것을 권장한다.
+    * ex - outlier 빼고 통계 내보기
+
+### `project`  
+
+* 기본 자료형 c  
+    * [unsigned , signed]  X  [long long, int (long), short, char]
+    * float, double, (half, quad)
+
+* IEEE754
+
+* IEEE802 - LAN 표준
+    * IEEE802.11 - 와이파이 표준
+
+* ex - unsigned char
+    * val =  b7 * 27 + b6 * 26 + b5 * 25 + …… + b1 * 21 + b0 * 20
+
+* ex - signed char
+    * sign bit가 1이면 : –(~b6 * 26 + ~b5 * 25 + …… + ~b1 * 21 + ~b0 * 20 + 1) 
+    * sign bit가 0이면 : b6 * 26 + b5 * 25 + …… + b1 * 21 + b0 * 20
+
+* c언어의 float는 실수를 표현할 수 없다.
+    * 실수를 표현하기 위해서는 무한히 큰 메모리가 필요하다.
+    * 따라서 어느정도에서 근사치를 컴퓨터에 저장한다. (approximation)
+
+* float
+    * (sign * -2 + 1) * (1.0 + fraction * 2-23 ) * 2 ^ (exp – 127) 
+
+* others
+    * half – sign 1, exp 5, fraction 11
+    * double – sign 1, exp 11, fraction 53
+    * quadruple – sing 1, exp 15, fraction 113
+
+* fixed point number
+    *  fixed point는 실수를 표현할 때 정밀도가 떨어진다.
 
 ***
