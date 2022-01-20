@@ -2366,7 +2366,7 @@ main.c를 수정했다면 main.c와 이전에 생성한 func.o를 컴파일해�
 > f(20+13)으로 사용하고자 했다면 20 + 13 * 20 + 13이 되어 의도대로 작동하지 않는다.
 
 <div style="text-align : center;">
-    <img src=./img/func.png width="45%" >  
+    <img src=./img/func.png width="20%" >  
 </div>  
 
 * cc -E func.c를 통해 func.h에 있던 extern 코드가 func.c로 온 것을 볼 수 있다.
@@ -2410,7 +2410,7 @@ DF(a+1) == (-(a+1) * (a+1))
 ```
 
 * 또는 위 코드와 같이 func.h에서 __FUNC_가 정의되어 있다면 ifdef 아래 코드를 실행하고, 아니면 점프를 하게 할 수 있다.
-    * 그러면 __FUNC_ 가 정의되지 않았을 때 한번만 실행하게 되고, 두번째 로딩할 때는 ifdef의 아래 코드가 실행되지 않는다.
+    * 그러면 `__FUNC_` 가 정의되지 않았을 때 한번만 실행하게 되고, 두번째 로딩할 때는 ifdef의 아래 코드가 실행되지 않는다.
 
 ```c
 #ifndef __FUNC_
@@ -2442,16 +2442,10 @@ extern int func2(int x);
 ## Lecture 8
 ##### - 2022. 01. 17  
 
-### `Order Expansion of Function Macro`  
-
-* Stringification
-* Parameters
-* Concatenation operations are replaced with the concatenated result of the two operands
-* Tokens
-
 ### `Macro 순서 예시`  
 
 ```c
+// macrotest.c
 #define HE HI
 #define LLO _THERE
 #define HELLO "HI THERE"
@@ -2463,7 +2457,24 @@ XCAT(HE, LLO),  // HI_THERE, because the tokens originating from parameters ("HE
 CALL(CAT)       // "HI THERE", because parameters are expanded first
 ```
 
-_되도록이면 이런식으로 macro 사용하지 않기..! 이해하기 어렵다._
+위 코드를 cc -E macrotest.c 로 preprocessing을 하면  
+
+* CAT(HE, LLO) -> "HI THERE"  
+
+    * CAT(a, b)는 a##b이므로 concat 매크로를 통해 HELLO가 된다.  
+
+    * 그럼 HELLO가 매크로를 통해 "HI THERE"가 된다.  
+
+* XCAT(HE, LLO) -> HI_THERE  
+    
+    * XCAT(HE, LLO)는 CAT(HE, LLO)이며 파라미터가 각각 먼저 expanded 되었기 때문에 CAT(HI, _THERE)가 된다. 따라서 concat 매크로를 통해 HI_THERE가 된다.
+
+* CALL(CAT) -> "HI THERE" 의 결과를 얻게 된다.
+    
+    * CALL(CAT)은 CALL(HE, LLO)가 되고 concat 매크로를 통해 HELLO가 된다.  
+
+
+_되도록이면 이런식으로 macro 사용하지 않기..! 간단한 단어들을 매크로 사용하면 오히려 이해하기 어렵다._
 
 * 간단한 단어들을 #define의 identifier로 사용하지 않기.
 
@@ -2472,31 +2483,72 @@ _되도록이면 이런식으로 macro 사용하지 않기..! 이해하기 어�
 ```c
 __FILE__
 __LINE__
-```
+```  
+
+* __FILE__에는 파일 이름이 프린팅 된다.
+    
+    * 여러 파일 컴파일 할 때 어떤 파일에서 오류가 났는지 모를 때 사용한다.  
+
+* __FILE__은 string, __LINE__은 integer이다.
+
+* #error 는 에러를 발생시키게 할 수 있다.
 
 ### `Token stringification`  
+
+* string 토큰으로 바꿔준다.
 
 ```c
 #define str(s)  #s
 str(p = "foo\n";)       //outputs "p = \"foo\\n";"
+str(\n)                 //outputs "\n"
 ```
+
+* #s로 매크로를 정의하면 문자열로 만들어준다.
+
+* print 매크로를 만들고 싶은데 어떤때에는 %d, %c, %s로 프린트 하고 싶을 때 token stringification을 사용하면 유용하다.  
 
 ### `Token Concatenation`  
 
-* 왜 #define sq(a) a*a concatenation 해야하는가?  
+* 두개를 붙여주는 매크로이다.
+
+```c
+#define DECLARE_STRUCT_TYPE(name) typedef struct name##_s name##_t
+DECLARE_STRUCT_TYPE(g_object);
+//outputs: typedef struct g_object_s g_object_t
+```
+
+g_object가 매크로의 name이 위치한 곳에 들어가 붙여져서 결과가 typedef struct g_object_s g_object_t 가 된다.  
+
+* 왜 #define sq(a) a*a를 사용할 때 concatenation 해야하는가?  
 
 ```c
 #define sq(a) a*a
 sq(B)
-#define sq(a) a##a##a
+#define sq(a) aaa
 sq(C)
+#define sq(a) a##a##a
+sq(D)
 ```
 
-* 붙여서 쓰고 싶을 때 concatenation 사용  
+* sq(B)는 B*B가 되는 것은 맞다.  
+
+* sq(C)가 출력할 때는 CCC가 나오는 것이 아니라 그냥 aaa의 결과를 얻게 된다.  
+
+* 따라서 붙여쓰고 싶다면 마지막처럼 a##a##a로 concatenation을 정의해야 DDD 라는 결과를 얻을 수 있다.
 
 ### `GCC Optimization`  
 
 * 최적화에 대한 table 존재  
+
+|Option|Meaning|
+|:--------:|:--------:|
+|-O0(기본값)|최적화를 수행하지 않는다.|
+|-O / -O1|코드 크기와 실행 시간을 줄이는 것을 제외한 최적화는 실행하지 않는다. |
+|-O2|메모리 공간과 속도를 희생하지 않는 범위내의 모든 최적화를 수행한다. loop unrolling과 function inlining에 대한 최적화를 수행하지 않는다.|
+|-O3 / -O2|최적화에 인라인 함수와 레지스터에 대한 최적화를 추가로 수행한다.|
+|-Os / -O2|최적화 기능을 사용하지만, 코드 크기를 증가시키는 최적화는 생략한다.|
+
+* optimization을 하다보면 코드 크기가 커진다.  
 
 ### `함수의 메모리 공간`  
 
@@ -2513,18 +2565,19 @@ int main(){
 }
 ```
 
-* 실행하기 전에 필요한 데이터 넣어둠  
+* 실행하기 전에 필요한 데이터 넣어둔다.  
+    * main의 메모리 공간에 a의 4바이트 등
 
 * 함수가 호출되면 호출될 때 메모리 stack 만든다.  
     * parameter a를 받기 위한 메모리
     * int b를 위한 메모리
     * return 값 저장하기 위한 메모리  
 
-* main에 있는 a와 함수에 있는 a는 다르다! 다른 위치의 메모리에 위치한다. 
+* main에 있는 a와 함수에 있는 a는 다르다! 다른 위치의 메모리에 위치한다.  
 
-* optimize하면 사용하지 않는 변수인 int b를 사용하지 않는다.  
+* optimize하면 사용하지 않는 변수인 int b를 사용하지 않는다. (사라진다.)  
 
-**Q**) fn에서 return a * a하는 것과, main에서 b = a *a 하는 것의 차이는?
+* *fn에서 `return a * a`하는 것과, main에서 `b = a *a` 하는 것의 차이는?
 
 **Q**) 함수를 만드는 것이 좋을까? 만들지 않는 것이 좋을까?  
 1. 성능은 어느쪽이 빠를까 (main 코드 vs 함수)  
@@ -2532,17 +2585,17 @@ int main(){
 
 **Q**) 함수는 stack 만드는 비용이 들어서 main 코드가 성능이 빠를 것 같은데 왜 함수를 사용하는가?
 > main함수나 다른 함수들에서 그 함수가 1000번 소스코드에 appear 된다고 가정하면, 코드의 길이 입장에서는 main에  당연히 함수로 만드는 것이 좋다.  
-c++에서는 inline이라는 것 있음 (함수의 코드 자체가 그대로 들어간다.)
 
-* #define으로 함수 정의하는 것은 잘 사용하기만 한다면 성능면에서와 코드 길이면에서 좋다!
+* **#define으로 함수 정의하는 것은 잘 사용하기만 한다면 성능면에서와 코드 길이면에서 좋다!**
 
-* #define으로 함수 정의하면 함수의 내용이 그대로 들어가게 된다.
+* #define으로 함수 정의하면 함수의 내용이 그대로 들어가게 된다.  
+
+* c++에서는 inline으로 코드 끼워넣을 수 있다. (함수의 코드 자체가 그대로 들어간다.)
 
 ### `C Compile and Execution`  
 
-<div style="text-align : center;">
-    <img src=./img/compile.png width="60%" >  
-</div>  
+* [ C Compile and Execution ](#오늘의-목표)
+    * compile 과정 복습
 
 ### `gcc -options`  
 
@@ -2550,11 +2603,12 @@ c++에서는 inline이라는 것 있음 (함수의 코드 자체가 그대로 �
 
 * -std=<standard> Assume that the input sources are for <standard>.
 * -E Preprocess only; do not compile, assemble or link.
+    * CPP, c preprocessor만 실행함
 * -S Compile only; do not assemble or link.
+    * compile만 함
 * -c Compile and assemble, but do not link.
+    * .o 파일을 만든다.
 * -o <file> Place the output into <file>.
-* -pie Create a position independent executable.
-* -shared Create a shared library.
 
 ### `gcc machine option (x86 & x86 win)`  
 
@@ -2563,12 +2617,14 @@ c++에서는 inline이라는 것 있음 (함수의 코드 자체가 그대로 �
 * arm에서 사용하도록 하고 싶다면 arm용 컴파일러를 설치하여야 한다.  
 
 * -m32 -m64 -mx32 -m16 
+    * 각각 32bit, 64bit
 
 ### `gcc option: preprocessor`  
 
-* preprocessor가 질문하는 경우가 있다. 
+* -Aquestion=answer
+ * preprocessor가 질문하는 경우가 있다. answer에 yes라 해두면 계속 yes로 대답함
 
-* -dI: include 파일은 이 디렉토리에서 가져오세요와 같이 설정
+* -dI: include 파일은 이 디렉토리에서 가져오도록 설정
 
 ### `Must Know..`  
 
@@ -2583,11 +2639,17 @@ gcc [-c|-S|-E] [-std=standard]
  [-o outfile] [@file] infile...
 
 * -c : generate .o file
+    * preprocessing & compile 까지만 실행
 * -g : for debug
-* -O : Optimization 
+* -O : Optimization  
+    * 최적화, 의미가 없는 코드는 아예 지워버린다. (빨라짐!)
 * -E : generate preprocessing
+    * preprocessing만 실행 -> .c 파일 만들어짐
 * -pg : for profile
 * -m32 -m64
+    * 32bit / 64bit 컴파일
+    * 64bit는 32bit에서 실행 불가
+    * 32bit는 64bit에서 실행 가능
 
 ### `compile 순서와 옵션`  
 
@@ -2599,20 +2661,29 @@ gcc [-c|-S|-E] [-std=standard]
 ### `CPP processing`  
 
 * Character set
-    * utf-8
+    * utf-8 = 유니코드
+
 * Initial processing
     1. LF, CR LF and CR processing
+        * 줄바꿈 코드를 모드 CR로 바꾼다.  
+
     2. if –trigraphs
+
     3. long line with “\” -> merge
-        * 긴줄, 여러줄 줄 바꿔서 쓰고 싶을 때 사용, 대신 c preprocessing 이 한줄로 다시 붙임
+        * 긴줄, 여러줄 줄 바꿔서 쓰고 싶을 때 사용한다.
+        * \을 사용하면 대신 c preprocessing 이 한줄로 다시 붙인다.
+
     4. All comments -> “ ”
+        * 모든 comment는 " "로 지운다.
 
 * Tokenization with space
     * #define foo() bar
     * foo()bar -> bar bar    not    barbar    // use ## for concat
+    * foo()bar를 했을 때는 barbar가 아닌 bar bar의 결과를 얻을 수 있다.
+    * barbar처럼 붙어있는 결과를 얻고 싶다면 ## concatenation을 사용한다.
 
 * Preprocessing language
-    * inclusion of header / Macro Expansion / Conditional Compile / Line Control Diagnostics
+    * inclusion of header / Macro Expansion / Conditional Compile / Line Control Diagnostics (에러 발생)
 
 * od -x -c hello.c
 
@@ -2620,8 +2691,18 @@ gcc [-c|-S|-E] [-std=standard]
     <img src=./img/od.png width="70%"/>  
 </div>
 
+* 여기서 \n이 들어가있고 \n이 0a = 10임을 알 수 있다.  
+
+* pc에서는 \n과 \r이 들어가있는데 유닉스에서는 \n만 들어있다.  
+
+    * 줄바꿈을 표현하는 방법은 시스템과 운영 체제에 따라 여러 가지가 있다. 
+    * 윈도우는 ASCII의 CR+LF로 새줄을 나타내고 유닉스는 LF로 새줄을 나타낸다. 
+    * 맥 OS은 새줄 문자로 버전 9까지 CR을 썼지만 버전 10부터 LF를 쓰고 있다.
+    
+* 위에서 언급한 CR processing이 일어나면 \n으로 다 바뀐다.
+
 * MS word 왼쪽, 오른쪽 구분되는 따옴표는 유니코드이다. -> C 언어에서 사용 불가!
-    * printf(“Hello World\n”"); 
+    * printf(“Hello World\n”");  
 
 ### `Macro Definition (1)`  
 
@@ -2636,11 +2717,12 @@ gcc [-c|-S|-E] [-std=standard]
 #define NUMBERS 1, \
                 2, \
                 3  
+
+int x[] = { NUMBERS };  //int x[] = { 1, 2, 3 };  
+//define 활용한 예시
 ```
 
-```c
-int x[] = { NUMBERS };  //int x[] = { 1, 2, 3 };  
-```
+여러줄로 define 하고 싶을 때 위에서 나온 back slash (\)을 사용한다.  
 
 * Define Where?
 
@@ -2650,10 +2732,14 @@ int x[] = { NUMBERS };  //int x[] = { 1, 2, 3 };
     bar = X;    // foo = X and bar = 4
 ```
 
+define은 어디에서나 할 수 있는데, 자신 직전에 했던 define이 작동한다.
+
 ```c
 #define TABLESIZE BUFSIZE
-#define BUFSIZE 1024 // TABLESIZE -> BUFSIZE  -> 1024
+#define BUFSIZE 1024 // TABLESIZE -> BUFSIZE  -> 1024 [X]
 ```
+
+TABLESIZE 가 BUFSIZE임을 정의하기 전에 BUFSIZE가 1024로 정의되어 있지 않아서 TABLESIZE가 1024로 작동하지 않는다.  
 
 ```c
 #define BUFSIZE 1020
@@ -2662,17 +2748,39 @@ int x[] = { NUMBERS };  //int x[] = { 1, 2, 3 };
 #define BUFSIZE 37   // TABLESIZE = 37
 ```
 
+이 경우에서는 BUFSIZE를 정의하고 그 다음에 TABLESIZE를 정의하였기 때문에 잘 작동한다.  
+
 ### `Macro Definition (3) - Function like Macro`  
 
-* C언어에서 if 조건문은 성능을 떨어뜨리는데 C 언어에서 사용하는 ? 조건문은 생각보다 성능이 좋다.
+* C언어에서 if 조건문은 성능을 떨어뜨리는데 C 언어에서 사용하는 ? 조건문은 생각보다 성능이 좋다.  
+
+```c
+#define min(X, Y) ((X) < (Y) ? (X) : (Y))
+```
+
+조건이 true이면 X이고, false이면 Y가 된다.  
+
+* omit parameter  
+
+```c
+min(, b) -> (()<(b) ? ( ) : (b))
+```
+
+빈 parameter에 무엇이 들어가든 모든 빈 공간에 paramter가 들어간다.  
+
+따라서 빈 paramter에 값이 들어가면 조건에 따라 새로 들어간 parameter 혹은 b 를 얻게 된다.  
+
+**대신 paramter 개수는 맞춰서 넣어줘야 한다.**
+> 위 경우에는 paramter 2개 필요! parameter 개수 맞지 않으면 에러 발생  
 
 ### `Macro Definition (4) - Stringization and concat`  
 
 * Stringization
     * Parameter leading with #
-    * 
+    * 위에서 본 예시 참고 -> paramter 안의 모든 것 string으로 바꿔줌
+
 * Concatenation
-    * #define
+    * ##을 사용하면 paramter로 들어온 것을 공백없이 합쳐주거나 공백없이 그 자리에 넣어준다.
 
 ### `Macro Definition (5) - Variadic`  
 
@@ -2683,9 +2791,9 @@ fprintf (stderr, "%s:%d: ", input_file, lineno)
 #define eprintf(format, ...) fprintf (stderr, format __VA_OPT__(,) __VA_ARGS__)
 ```
 
-* 뒤에 parameter들이 개수에 따라 여러개의 parameter 개수가 될 수 있는 함수 만들 수 있다. (생각보다 어려움..! 도전해보기)
+* 뒤에 parameter들이 개수에 따라 여러개의 parameter 개수가 될 수 있는 함수 만들 수 있다.
 
-### `예시`  
+### `Macro 예시`  
 
 * Misnesting  
 
@@ -2697,11 +2805,11 @@ call_with_1 (twice)  // -> twice(1)  -> (2*(1))
 #define strange(file) fprintf (file, "%s %d", strange(stderr) p, 35); // -> fprintf (stderr, "%s %d", p, 35);  
 ```
 
+* 위 예시처럼 코드 짜지 않기..  실행이 되긴 되긴 하지만 이해하기 어렵다.
+
 * Operator precedence  
 
 * Newline
-
-* 위 예시처럼 코드 짜지 않기.. 이해하기 어렵다. 실행이 되긴 된다.
 
 ### `Predefined Macros`  
 
@@ -2712,9 +2820,7 @@ __FILE__    // Filename with full path string
 __LINE__    // Decimal number of current line
 ```
 
-* C99
-
-* GNU C Extension  
+* __LINE__으로 line number를 바꿀 수 있다.
 
 ```c
 //hello.c
@@ -2746,6 +2852,12 @@ $ a.out
 hello.c 18 : 300
 ```
 
+* 위 hello.c 코드에서 사용한 __FILE__과 __LINE_으로 파일 이름 hello.c와 line number 18이 출력된 것을 볼 수 있다.
+
+* 만약 print문 직전에 `#define __LINE__ 1000` 매크로를 사용했다면 print문의 line number가 1000으로 출력된다.
+
+* `#error 1024`를 사용하면 컴파일 시도할 때 바로 에러가 발생한다.
+
 ```c
 #define ERR_DATA 1000
 #if ERR_DATA > 1000
@@ -2756,8 +2868,60 @@ hello.c 18 : 300
         fprintf(stdout, "%s %d : %d \n", __FILE__, __LINE__, c);
 ```
 
-* line define하면 line number가 증가하지 않는다. -> 되도록이면 line number 지정하지 않기.
+* 위 코드는 ERR_DATA가 1000이므로 에러가 나지 않고 warning과 함께 아래의 print문이 출력된다.
 
+* line number를 define하면 line number가 증가하지 않는다. -> 되도록이면 line number 지정하지 않기.
+
+### `Project`  
+
+* 아주대학교의 임베디드 시스템을 위한 고정소수점 수학 라이브러리 개발  
+
+* 고정소수점 <-> 부동소수점 (뜰 부, floating point)
+
+* 10010101 = 정수로 149 (10진수)
+
+* 2진수 1101.11 = 9.75
+    * 소수점 뒤 부분은 1/2, 1/4가 된다.  
+
+* 부동소수점  
+
+<div style="text-align : center;">
+    <img src=./img/floating_point.png width="45%"/>  
+</div>
+
+* 위 사진에서 1 / 10000101 / 11011010100000000000000 를 10진수로 바꾸고 싶다면
+    * 순서대로 각각 s, e, m
+    * 1.m * (2 ^ (e-127)) 이다.
+    * 부호는 (-2S + 1) 로 이를 곱해줘야한다.
+
+* 만약 32bit signed 정수를 2의 보수로 표현한다면
+    * s / 15bit / 16bit
+    * signed int a 의 실제 값은 a * 2 ^ (-16) 이다.
+
+```c
+//pcc001_final / test.c
+#include <stdio.h>
+
+// #### #### #### #### .  #### #### #### ####
+// S 15 . 16
+
+#define FX_Q_NUM 16
+#define FX_2_MINUS_16 1.52587890625e-05
+#define FX_2_PLUS_16 65536
+
+int main()
+{
+    int ia;
+    float fa;
+    fscanf(stdin, "%d", &ia);
+    fprintf(stdout, "%d : %d %d\n", 2, 16, 2^16 );
+    fprintf(stdout, "%d : %f %f\n", ia, (float)ia, (float)ia *  FX_2_MINUS_16);
+    //ia를 fixed point로 출력하고 싶다면 float형으로 바꾸고 2의 -16승을 곱해준다.
+    fscanf(stdin, "%f", &fa);
+    fprintf(stdout, "%f : %d %d\n", fa, (int)fa, (int) (fa * FX_2_PLUS_16));
+    //floating point에 2의 16승을 곱하고 int형으로 바꿔 fixed point로 출력한다.
+}
+```
 
 ***
 
@@ -3210,5 +3374,258 @@ a.out: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically 
 
 * fixed point number
     *  fixed point는 실수를 표현할 때 정밀도가 떨어진다.
+
+***
+
+## Lecture 11
+##### - 2022. 01. 20  
+
+* addPointer, addValue 함수 설명
+
+* call by value , call by reference
+
+### `how to use gprof`  
+
+* System을 느리게 하는 것들!
+
+### `What makes different performance`  
+
+* System을 느리게 하는 것들!
+
+* golden rule
+    * speed - CPU > Memory > Storage > IO > Human
+    * Register > Cache (1st, 2nd) > Memory > ...
+    * Locality
+    * Pipeline
+    * Error
+
+* Depend on HW
+    * One cycle execution - +, -, >>, <<, > ?
+
+**Q**) 왜 덧셈이 곱하기보다 느릴까?
+> 덧셈 오버플로우 발생 (Error)  
+(long long) 256 * 256 * 256 * 256 이렇게 큰 수를 더할 때 오버플로우가 발생  
+따라서 64 * 256 * 256 * 256으로 성능 테스트 해보기
+
+```c
+#include <stdio.h>
+
+int fxMul1(int a, int b)
+{
+        return a * b;
+}
+
+int fxMul2(int a, int b)
+{
+        return (int)((long long) a * (long long) b);
+}
+
+int main()
+{
+        long long i=0;
+        int ia, ib, ic, ic2;
+        float fa;
+        //fscanf(stdin, "%d %d", &ia, &ib);
+        for(i = 0; i < (long long )256 * 256 * 256 * 256 ; i += 25)
+        {
+                ic = fxMul1(i, i);
+        }
+        for(i = 0; i < (long long )256 * 256 * 256 * 256 ; i += 5)
+        {
+                ic = fxMul2(i, i);
+        }
+}
+```
+
+```bash
+$ cc -pg -g test3.c
+$ a.out
+$ gprof -b
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+ 43.11      0.12     0.12                             main
+ 34.13      0.22     0.10 42949673     2.23     2.23  fxMul2
+ 23.35      0.28     0.07 42949673     1.52     1.52  fxMul1
+
+
+			Call graph
+
+
+granularity: each sample hit covers 2 byte(s) for 3.55% of 0.28 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]    100.0    0.12    0.16                 main [1]
+                0.10    0.00 42949673/42949673     fxMul2 [2]
+                0.07    0.00 42949673/42949673     fxMul1 [3]
+-----------------------------------------------
+                0.10    0.00 42949673/42949673     main [1]
+[2]     33.9    0.10    0.00 42949673         fxMul2 [2]
+-----------------------------------------------
+                0.07    0.00 42949673/42949673     main [1]
+[3]     23.2    0.07    0.00 42949673         fxMul1 [3]
+-----------------------------------------------
+
+
+Index by function name
+
+   [3] fxMul1                  [2] fxMul2                  [1] main
+pcc001@git:~/pcc/lec10$
+```
+
+* 왜 mul1이 mul2보다 느릴까?
+    * mul1에서는 오버플로우가 발생했지만 mul2에서는 long long으로 바꿨기 때문에 오버플로우가 발생하지 않는다.  
+
+* 32bit 용으로 컴파일하면 더 빨라짐
+    * 32bit integer 연산이 많다면 더 빨라진다.
+    * 그리고 대부분 32bit integer 연산이다.
+
+```bash
+gprof -b
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+ 25.75      0.11     0.11 42949673     2.46     2.46  fxMul1
+ 25.75      0.21     0.11 42949673     2.46     2.46  fxMul2
+ 22.07      0.30     0.09                             __x86.get_pc_thunk.bx
+ 17.16      0.37     0.07                             main
+  9.81      0.41     0.04                             __x86.get_pc_thunk.dx
+
+
+			Call graph
+
+
+granularity: each sample hit covers 2 byte(s) for 2.43% of 0.41 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     68.3    0.07    0.21                 main [1]
+                0.11    0.00 42949673/42949673     fxMul1 [2]
+                0.11    0.00 42949673/42949673     fxMul2 [3]
+-----------------------------------------------
+                0.11    0.00 42949673/42949673     main [1]
+[2]     25.6    0.11    0.00 42949673         fxMul1 [2]
+-----------------------------------------------
+                0.11    0.00 42949673/42949673     main [1]
+[3]     25.6    0.11    0.00 42949673         fxMul2 [3]
+-----------------------------------------------
+                                                 <spontaneous>
+[4]     22.0    0.09    0.00                 __x86.get_pc_thunk.bx [4]
+-----------------------------------------------
+                                                 <spontaneous>
+[5]      9.8    0.04    0.00                 __x86.get_pc_thunk.dx [5]
+-----------------------------------------------
+
+
+Index by function name
+
+   [4] __x86.get_pc_thunk.bx   [2] fxMul1                  [1] main
+   [5] __x86.get_pc_thunk.dx   [3] fxMul2
+```
+
+* 위 결과로 같은 코드인데 32bit 컴파일하고 실행했더니 이 경우가 더 빨라진 것을 볼 수 있다.  
+
+### `project - ARM Instruction set format`  
+
+### `rgba.c`  
+
+```c
+#include <stdio.h>
+
+typedef unsigned int t_rgba;
+
+unsigned int fromRGBA(int r, int g, int b, int a)
+{
+        return (r<<24|g<<16|b<<8|a);
+}
+
+int main(){
+
+        int red, green, blue, alpha;
+        t_rgba rgba_1;
+        // input value must be in 0~255
+        // rgba_1 [rrrrrrrr][gggggggg][bbbbbbbb][aaaaaaaa]
+        printf("Input 4 values with 0~255 ");
+        scanf("%d %d %d %d", &red, &green, &blue, &alpha);
+        rgba_1 = fromRGBA(red, green, blue, alpha);
+        printf("%d %d %d %d : %d 0x08%x\n", red, green, blue, alpha, rgba_1, rgba_1);
+}
+```
+
+```c
+#include <stdio.h>
+
+typedef unsigned int t_rgba;
+
+unsigned int fromRGBA(int r, int g, int b, int a)
+{
+        //return (r<<24|g<<16|b<<8|a);
+        return r*256*256*256 + g*256*256 + b*256 + a*1;
+}
+
+int main(){
+
+        int red, green, blue, alpha;
+        t_rgba rgba_1;
+        // input value must be in 0~255
+        // rgba_1 [rrrrrrrr][gggggggg][bbbbbbbb][aaaaaaaa]
+        printf("Input 4 values with 0~255 ");
+        scanf("%d %d %d %d", &red, &green, &blue, &alpha);
+        rgba_1 = fromRGBA(red, green, blue, alpha);
+        printf("%d %d %d %d : %u 0x08%x\n", red, green, blue, alpha, rgba_1, rgba_1);
+}
+```
+
+```bash
+$ a.out
+Input 4 values with 0~255 255 255 255 255
+255 255 255 255 : 4294967295 0xffffffff
+```
+
+* 컴퓨터는 2진수 체계
+
+* chmod ### 은 8진수 체계 , 사용할 수 있는 수가 0~7이다.
+
+```c
+return (r<<24 + g<<16 + b<<8 + a);          //case 1
+return (r<<24) + (g<<16) + (b<<8) + (a);    //case 2
+```
+
+**Q**) |를 +로 바꿔도 잘 계산될까?
+> +가 <<<보다 우선순위가 높기 때문에 우선순위 때문에 의도한대로 출력되지 않는다.  
+r<<< (24 + g) <<< (16 + b) <<< (8+a);로 계산된다.
+따라서 두번째 case 처럼 괄호를 사용해야한다.
+
+```c
+#define fromRGBA(r, g, b, a) ((r&0xff)<<24)|((g&0xff)<<16)|((b&0xff)<<8)|(a&0xff)
+#define fromRGBA(r, g, b, a) (((r)&0xff)<<24)|(((g)&0xff)<<16)|(((b)&0xff)<<8)|((a)&0xff)
+```
+
+* 첫번째 경우에서 꼭 변수에 독립적으로 괄호를 사용해야한다!
+
+* r+3을 첫번째에 넣었다면 (r + 3 & 0xff )<<24 로 계산되었을 것이다.
+
+* 따라서 두번째처럼 메크로 정의하면 사용 가능
+
+* 곱셈보다 나눗셈이 4배정도 빠르다.  
+
+* 따라서 아래 코드에서 나눗셈 대신에 역수 메크로를 정의해서 곱해줌
+
+```c
+#define FNUM_1_255      (1.0f/255.0f)
+
+t_rgba mul_float(t_rgba c1, trgba c2){
+
+        float r1, g1, b1, a1;
+        float r2, g2, b2, a2;
+        r1 = (float) (c1>>24) * F_NUM_1_255;;
+
+}
+```
 
 ***
