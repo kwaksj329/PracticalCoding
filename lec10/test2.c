@@ -20,7 +20,7 @@ int main()
 	{
 		ic = fxMul1(i, i);
 	}
-	for(i = 0; i < (long long )256 * 256 * 256 * 256 ; i += 25)
+	for(i = 0; i < (long long )256 * 256 * 256 * 256 ; i += 5)
 	{
 		ic = fxMul2(i, i);
 	}
