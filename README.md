@@ -2886,7 +2886,7 @@ hello.c 18 : 300
 * 부동소수점  
 
 <div style="text-align : center;">
-    <img src=./img/floating_point.png width="45%"/>  
+    <img src=./img/floating_point.png width="60%"/>  
 </div>
 
 * 위 사진에서 1 / 10000101 / 11011010100000000000000 를 10진수로 바꾸고 싶다면
@@ -2897,6 +2897,8 @@ hello.c 18 : 300
 * 만약 32bit signed 정수를 2의 보수로 표현한다면
     * s / 15bit / 16bit
     * signed int a 의 실제 값은 a * 2 ^ (-16) 이다.
+
+### `입력받은 수를 fixed point로 출력하는 프로그램`  
 
 ```c
 //pcc001_final / test.c
@@ -2923,6 +2925,10 @@ int main()
 }
 ```
 
+* fixed point로 바꾸기
+    * int형 데이터 -> float 형으로 바꾸고 2의 -16승을 곱해준다.
+    * float형 데이터 -> 2의 16승을 곱하고 int형으로 바꿔준다.
+
 ***
 
 ## Lecture 9
@@ -2932,17 +2938,126 @@ int main()
 
 * 아주대학교의 임베디드 시스템을 위한 고정소수점 수학 라이브러리 개발  
 
-### `debug`  
+* CPU가 하는 중요한 작업 두가지
+    * ALU - arithmetic logic unit
+    * CU - control unit
+
+* +, -, *, /, &, |, ^, ~, >>, << : 보통 단위 사이클에 끝남
+    * 곱셈, 나눗셈 : 어떤 컴퓨터에서는 한 사이클에 끝나지만 어떤 컴퓨터에서는 아닐 수도 있다.
+
+* ex) Processor : Intel(R) Core(TM) i7-8700K CPU 3.70GHz
+    * 기본 한 사이클 : 1 / clock speed = 1 / 3.7GHz = 0.27 nano second
+
+* fixed point를 사용하는 이유?
+    * floating point 연산은 integer 연산에 비해 매우 비싼 연산이다.
+    * 내가 표현하고 싶은 수가 정수가 아니라 유효숫자가 있는 수를 표현하고 싶다면 int로 표현하되 소숫점을 고정해서 표현한다.
+
+* #define FX_S32_31은 signed 32bit + 31bit이니까 64bit long long을 사용해야한다.
+
+* #define FX_S47_16 -> signed long long
+
+* #define FX_S16_15 & #define FX_S23_08 -> signed integer
+
+* #define FX_S8_7 -> signed short
+
+* #define FX_S4_3 -> signed char
+
+### `S 15 . 16`  
+
+```c
+#include <stdio.h>
+
+// #### #### #### #### .  #### #### #### ####
+// S 15 . 16
+
+#define FX_Q_NUM 16
+#define FX_2_MINUS_16 1.52587890625e-05F
+#define FX_2_PLUS_16 65536
+#define FX_S_15_16 11516
+#define FX_SYSTEM FX_S_15_16
+
+typedef int fixed32;
+
+fixed32 fromFloat(float fa)
+{
+    return (fixed32) (fa * FX_2_PLUS_16);
+
+}
+
+float toFloat(fixed32 xa)
+{
+    return ((float)(xa)) * FX_2_MINUS_16;
+
+}
+
+fixed32 fxAdd(fixed32 a, fixed32 b)
+{
+    return fromFloat((toFloat(a) + toFloat(b)));
+}
+
+fixed32 fxAdd2(fixed32 a, fixed32 b)
+{
+    return a + b;
+}
+
+int main()
+{
+    long long i=0;
+    int ia, ib, ic, ic2;
+    float fa;
+    //fscanf(stdin, "%d %d", &ia, &ib);
+    for(i = 0; i < (long long )256 * 256 * 256 * 256 ; i += (256 * 256))
+    {
+        ic = fxAdd(i, i);
+        ic2 = fxAdd2(i, i);
+        fprintf(stdout, "%f + %f : %f, %f diff = %d\n", toFloat(i), toFloat(i), toFloat(ic), toFloat(ic2),ic-ic2 );
+    }
+    //fprintf(stdout, "%d + %d : %d\n", ia, ib, ic);
+    //fprintf(stdout, "%f + %f : %f\n", toFloat(ia), toFloat(ib), toFloat(ic));
+}
+```
+
+* #define FX_2_PLUS_16의 65536을 (1<<16)으로 사용해도 성능상에서는 차이 없다.
+
+* fromFloat 함수 : fixed point로 변환해서 return
+
+* toFloat 함수 : floating point로 변환해서 return
+
+* fxAdd : fixed point를 floating point로 변환 후에 더하고 다시 fixed point로 변환해서 return 해줌
+
+* fxAdd2 : 그냥 a와 b를 더해서 return  
+
+**Q**) fxAdd와 fxAdd2의 결과는 같을까?
+> ic에는 fxAdd의 결과를, ic2에는 fxAdd2의 결과를 저장하였다.  
+실행결과는 result.out에 저장함.  
+
+`project - 보고서에 써야할 점`  
+
+* i가 0에서부터 500만까지 i++ 해서 들어갈 때, 결과를 출력해보면 0.000000 + 0.000000....이고 그 다음이 0.000015 였다.  
+
+* 이 숫자가 표현할 수 있는 가장 작은 숫자의 차이가 0.000015라는 뜻이다.
+
+> 이 시스템은 정수파트가 15비트, 소수점 이하 부분이 16비트인 시스템인데 이 시스템에서 표현할 수 있는 가장 작은 차이의 수는 0.000015 입니다.  
+정확한 값인지 아닌지는 나중에 계산해봐야함 -> 0.000015가 맞았다면 그 다음이 0.000030이어야 하는데 0.000031이니까 계산해봐야함  
+
+* i = long long, for (i = 0 ; (long long) 256 * 256 * 256 * 256; i += (256 * 256) ) 실행 했을 때 결과 중 오버플로우 발생
+    * 이때 16385.000000 + 16385.000000 = -32768.000000 으로 오버플로우 발생
+
+### `debugging`  
+
+* gcc compile options 중에 -g 가 for debug
+
+* pcc001_final/test.c를 수정해서 일부러 &ib를 ib로 scanf 하여 에러가 발생하도록 하였다.
 
 ```bash
-$ ./a.out
-200 200
-Segmentation fault (core dumped)
-
 $ cc -g test.c
 test.c: In function ‘main’:
 test.c:41:21: warning: format ‘%d’ expects argument of type ‘int *’, but argument 4 has type ‘int’ [-Wformat=]
   fscanf(stdin, "%d %d", &ia, ib);
+
+$ ./a.out
+200 200         # 200 200 입력함
+Segmentation fault (core dumped)
 
 $ file a.out
 a.out: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=a4867b47f1cd5e4faf38b42c8bde146a4cfc100d, with debug_info, not stripped
@@ -2952,19 +3067,24 @@ a.out: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linke
 $ gdb a.out
 ```
 
-### `gdb`
+* gdb 사용하는 방법 = gdb 실행파일 = gdb a.out
+
+### `gdb - GNU debugger`  
+
+* gcc -g 옵션으로 컴파일하고 gdb를 통해 디버깅
 
 ```bash
-(gdb) run
+(gdb) run           # 실행
 Starting program: /home/course/pcc001/pcc/lec09/a.out
-500 500
+500 500             # scanf로 입력받을 값 넣어줌
 
 Program received signal SIGSEGV, Segmentation fault.
 0x00007ffff7a53932 in _IO_vfscanf_internal (s=s@entry=0x7ffff7dcfa00 <_IO_2_1_stdin_>, format=<optimized out>,
     argptr=argptr@entry=0x7fffffffe0f0, errp=errp@entry=0x0) at vfscanf.c:1898
 1898	vfscanf.c: No such file or directory.
+# 에러가 scanf에서 발생했음을 알 수 있다.
 
-(gdb) where
+(gdb) where         # 에러가 발생한 현재 위치가 어디인지 알려줌
 #0  0x00007ffff7a53932 in _IO_vfscanf_internal (s=s@entry=0x7ffff7dcfa00 <_IO_2_1_stdin_>, format=<optimized out>,
     argptr=argptr@entry=0x7fffffffe0f0, errp=errp@entry=0x0) at vfscanf.c:1898
 #1  0x00007ffff7a60356 in __isoc99_fscanf (stream=0x7ffff7dcfa00 <_IO_2_1_stdin_>, format=<optimized out>)
@@ -2975,31 +3095,104 @@ Program received signal SIGSEGV, Segmentation fault.
 Working directory /home/course/pcc001/pcc/lec09.
 
 (gdb) list
-1893	in vfscanf.c
+1893    in vfscanf.c
 
 (gdb) list main
-32	{
-33		return a + b;
-34	}
+32  {
+33      return a + b;
+34  }
 35
-36	int main()
-37	{
-38		long long i=0;
-39		int ia, ib, ic, ic2;
-40		float fa;
-41		fscanf(stdin, "%d %d", &ia, ib);
+36  int main()
+37  {
+38      long long i=0;
+39      int ia, ib, ic, ic2;
+40      float fa;
+41      fscanf(stdin, "%d %d", &ia, ib);
 ```  
 
-* test.c의 main함수에서 fscanf 실행했는데.. call stack
+* gdb 명령어  
+    * run : 실행
+    * where : 에러가 발생한 현재 위치가 어디인지 알려줌
+    * pwd : 현재 작업 디렉토리
+    * list : 현재 vfscanf.c를 보고있다.
+    * list function_name : 함수의 소스코드를 보여준다.
 
-* 한줄씩 실행: step  
+* where를 통해 알게 된 점  
+test.c의 41번째 라인에서 에러가 발생했다.  
+test.c의 main() 함수에서 __isoc99_fscanf를 호출하였고, 이 함수는 _IO_vfscanf_internal 함수를 호출하였다.  
+== `call stack`  
 
-* next
+```bash
+(gdb) list
+29      return a + b;
+30  }
+31
+32  int main()
+33  {
+34      long long i=0;
+35      int ia, ib, ic, ic2;
+36      float fa;
+37      fscanf(stdin, "%d %d", &ia, ib);
 
-* 계속 run: continue  
+(gdb) break 34
+Breakpoint 1 at 0x833: file test.c, line 34
+
+(gdb) run
+Starting program: /home/course/pcc001/lec09/a.out
+
+Breakpoint 1, main() at test.c:34
+34              int i=0;
+
+(gdb) print i
+$i =0
+
+(gdb) step
+37              fscanf(stdin, "%d %d", &ia, ib);
+# 왜 다음 줄인 35번이 아니라 37번을 실행한 것일까?
+# 실행문이 아니라 선언문이므로 다음 실행문이 37번 라인을 실행함
+
+(gdb) print ia
+$2 = 32767
+(gdb) print ic
+$3 = 0
+(gdb) print ic2
+$4 = 21845              # 변수에 garbage 들어가있는 모습
+
+(gdb) watch ic
+Hardware watchpoint 2: ic
+
+(gdb) continue
+Continuing.
+0.000000 + 0.000000 : 0.000000 , 0.000000 diff = 0
+
+Hardware watchpoint 2:ic
+
+Old value = 0
+New value = 131072
+main () at test.c:41
+41                      ic2 = fxAdd2(i, i);
+# ic 값이 40 라인에서 바뀌어서 바로 그 다음줄 41번 라인에서 stop한다.
+```
+
+* gdb 명령어
+    * break line_number : line number로 breakpoint 지정해줌
+        * break 함수명도 가능
+    * run : breakpoint 지정했다면 실행 후 그 라인에서 멈춤
+    * print 변수 : 현재 변수에 저장된 값 볼 수 있음
+    * step : 그 다음 줄 실행 (실행문) - 호출된 함수의 소스코드로 들어갈 수 O
+    * next == ni : 현재 소스코드의 다음 줄 실행
+    * continue : 계속 실행하고 싶을 때
+    * quit : 실행 process 종료
+    * clear breakpoints line_number : line number로 지정된 breakpoint 삭제
+    * bt :  충돌이 일어난 시점에서 프로그램의 현재 호출 스택 보여줌 (call stack)
+        * ex) fromFloat를 fxAdd가 호출하였고, fxAdd를 main이 호출하였음을 알 수 있다.  
+    * watch 변수명 : 어떤 변수의 값이 변했을 때 stop 시키고 싶다면 사용
+
+**next vs step**
+next : 현재 소스코드의 다음 줄 실행  
+step : 다음 줄 실행하긴 하는데 호출된 함수의 소스코드로 들어가고 싶을 때 사용  
 
 ***
-
 
 ## Lecture 10
 ##### - 2022. 01. 19  
