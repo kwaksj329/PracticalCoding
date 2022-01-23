@@ -2367,7 +2367,7 @@ main.c를 수정했다면 main.c와 이전에 생성한 func.o를 컴파일해�
 > f(20+13)으로 사용하고자 했다면 20 + 13 * 20 + 13이 되어 의도대로 작동하지 않는다.
 
 <div style="text-align : center;">
-    <img src=./img/func.png width="20%" >  
+    <img src=./img/func.png width="30%" >  
 </div>  
 
 * cc -E func.c를 통해 func.h에 있던 extern 코드가 func.c로 온 것을 볼 수 있다.
@@ -2887,7 +2887,7 @@ hello.c 18 : 300
 * 부동소수점  
 
 <div style="text-align : center;">
-    <img src=./img/floating_point.png width="60%"/>  
+    <img src=./img/floating_point.png width="70%"/>  
 </div>
 
 * 위 사진에서 1 / 10000101 / 11011010100000000000000 를 10진수로 바꾸고 싶다면
@@ -3588,7 +3588,7 @@ a.out: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically 
     * 연산 – 덧셈/뺄셈/곱셈/나눗셈 (복수의 장단점이 있는 함수)
     * 함수 – Sine, Cosine, Tan, Sqrt (가능하면)
         * 전부 table로 만들 수 있다 (메모리에 만들어두기)
-            * ex - 0도~90도까지 array table 만들고 만약 30.5도면 30~31도 선형으로 interpolation 해도 됨 (선형 보간법)
+            * ex - 0도에서 90도까지 array table 만들고 만약 30.5도면 30도와 31도를 선형으로 interpolation 해도 됨 (선형 보간법)
     * 변환 – from/to double, float, int, short, longlong
     * 상수 – PI, 1/PI, e, log 10, log 2, 자주 쓰이는 수
         * #define으로 정의함
@@ -3607,13 +3607,20 @@ a.out: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically 
 ## Lecture 11
 ##### - 2022. 01. 20  
 
-* addPointer, addValue 함수 설명
-
-* call by value , call by reference
+* addValue - call by value : 함수 호출시 값을 보내주는 방법 
+* addPointer - call by address : 함수 호출시 주소를 보내주는 방법
+    * call by address는 call by reference의 한 종류임
 
 ### `how to use gprof`  
 
-* System을 느리게 하는 것들!
+* gprof options
+    * -b // -brief -q -p : call graph or runtime
+    * -z // add unused functions
+        * 사용하지 않은 함수도 나타내준다.
+        * 함수 포인터로 호출된 함수도 counting이 증가한다. (ex - fn = mul;)
+    * -A // Annotation on source, must be compiled with -pg -g
+        * 소스코드에 주석을 달아줌, 제일 많이 실행된 라인, 실행 요약 보여줌
+    * --graph
 
 ### `What makes different performance`  
 
@@ -3621,16 +3628,21 @@ a.out: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically 
 
 * golden rule
     * speed - CPU > Memory > Storage > IO > Human
+        * print 문 - IO
+        * file open - storage
     * Register > Cache (1st, 2nd) > Memory > ...
     * Locality
     * Pipeline
+        * 조건문
     * Error
+
+* function call 도 매우 느리다.
 
 * Depend on HW
     * One cycle execution - +, -, >>, <<, > ?
 
 **Q**) 왜 덧셈이 곱하기보다 느릴까?
-> 덧셈 오버플로우 발생 (Error)  
+> 덧셈 오버플로우가 발생했기 때문이다. (Error)  
 (long long) 256 * 256 * 256 * 256 이렇게 큰 수를 더할 때 오버플로우가 발생  
 따라서 64 * 256 * 256 * 256으로 성능 테스트 해보기
 
@@ -3649,15 +3661,15 @@ int fxMul2(int a, int b)
 
 int main()
 {
-        long long i=0;
+        int i=0;
         int ia, ib, ic, ic2;
         float fa;
         //fscanf(stdin, "%d %d", &ia, &ib);
-        for(i = 0; i < (long long )256 * 256 * 256 * 256 ; i += 25)
+        for(i = 0; i < 64 * 256 * 256 * 256 ; i += 5)
         {
                 ic = fxMul1(i, i);
         }
-        for(i = 0; i < (long long )256 * 256 * 256 * 256 ; i += 5)
+        for(i = 0; i < 64 * 256 * 256 * 256 ; i += 5)
         {
                 ic = fxMul2(i, i);
         }
@@ -3761,6 +3773,17 @@ Index by function name
 
 ### `rgba.c`  
 
+* 4byte - unsigned int로 선언 (uint32)
+    * HSB - 8bit(r) 8bit(g) 8bit(b) 8bit(a) - LSB
+    * 2의 24승 색 표현할 수 있다.
+
+* 표현할 수 있는 가장 어두운 red & 밝은 red는 몇단계로 변할 수 있을까?
+    * 0 ~ 255 : 256단계
+
+* fixed point : 0은 0.0으로, 255는 1.0으로 표현하고 싶다.
+
+`shift 로 계산`  
+
 ```c
 #include <stdio.h>
 
@@ -3784,6 +3807,8 @@ int main(){
 }
 ```
 
+`곱하기로 계산`  
+
 ```c
 #include <stdio.h>
 
@@ -3791,7 +3816,6 @@ typedef unsigned int t_rgba;
 
 unsigned int fromRGBA(int r, int g, int b, int a)
 {
-        //return (r<<24|g<<16|b<<8|a);
         return r*256*256*256 + g*256*256 + b*256 + a*1;
 }
 
@@ -3814,19 +3838,33 @@ Input 4 values with 0~255 255 255 255 255
 255 255 255 255 : 4294967295 0xffffffff
 ```
 
+* 두 소스코드 모두 같은 결과를 갖는다.
+
+* `(r<<24|g<<16|b<<8|a);` 와 `r*256*256*256 + g*256*256 + b*256 + a*1;`는
+    * r, g, b, a가 0에서 255임을 만족한다면 연산은 완전히 같다.
+
 * 컴퓨터는 2진수 체계
 
 * chmod ### 은 8진수 체계 , 사용할 수 있는 수가 0~7이다.
 
 ```c
+return (r<<24|g<<16|b<<8|a)                 //case 0
 return (r<<24 + g<<16 + b<<8 + a);          //case 1
 return (r<<24) + (g<<16) + (b<<8) + (a);    //case 2
 ```
 
 **Q**) |를 +로 바꿔도 잘 계산될까?
 > +가 <<<보다 우선순위가 높기 때문에 우선순위 때문에 의도한대로 출력되지 않는다.  
-r<<< (24 + g) <<< (16 + b) <<< (8+a);로 계산된다.
-따라서 두번째 case 처럼 괄호를 사용해야한다.
+r<<< (24 + g) <<< (16 + b) <<< (8+a);로 계산된다.  
+따라서 두번째 case 처럼 **괄호**를 사용해야한다.  
+
+```c
+return ((r&0xff)<<24)|((g&0xff)<<16)|((b&0xff)<<8)|(a&0xff)    
+```
+
+* 예를 들어 green에 이상한 숫자 들어가면 다른 자리 말고 green 만 영향을 받게 하고 싶다면 위 코드를 사용한다.
+
+* LSB, 가장 낮은 자리수에 있는 8bit만 남기고 나머지에 0을 쓰는 코드이다.
 
 ```c
 #define fromRGBA(r, g, b, a) ((r&0xff)<<24)|((g&0xff)<<16)|((b&0xff)<<8)|(a&0xff)
@@ -3837,11 +3875,9 @@ r<<< (24 + g) <<< (16 + b) <<< (8+a);로 계산된다.
 
 * r+3을 첫번째에 넣었다면 (r + 3 & 0xff )<<24 로 계산되었을 것이다.
 
-* 따라서 두번째처럼 메크로 정의하면 사용 가능
+* 따라서 두번째처럼 메크로 정의하면 의도대로 사용이 가능하다.
 
-* 곱셈보다 나눗셈이 4배정도 빠르다.  
-
-* 따라서 아래 코드에서 나눗셈 대신에 역수 메크로를 정의해서 곱해줌
+### `mul vs div`  
 
 ```c
 #define FNUM_1_255      (1.0f/255.0f)
@@ -3850,9 +3886,68 @@ t_rgba mul_float(t_rgba c1, trgba c2){
 
         float r1, g1, b1, a1;
         float r2, g2, b2, a2;
-        r1 = (float) (c1>>24) * F_NUM_1_255;;
-
+        r1 = (float) ((c1 >> 24)       ) * FNUM_1_255;
+	    g1 = (float) ((c1 >> 16) & 0xff) * FNUM_1_255;
+	    b1 = (float) ((c1 >>  8) & 0xff) * FNUM_1_255;
+	    a1 = (float) ((c1      ) & 0xff) * FNUM_1_255;
 }
 ```
+
+* 곱셈이 나눗셈보다 4배정도 빠르다.  
+
+* 따라서 위 코드에서 나눗셈 대신에 역수 메크로를 정의해서 곱해주는 것이 더 빠르다.
+
+    * F_NUM_1_255는 #define F_NUM_1_255 (1.0f/255.0f) 로 정의되었다.
+
+### `t_rgba float / int 곱하기 함수`    
+
+```c
+#define FNUM_1_255	(1.0f/255.0f)
+
+t_rgba mul_float(t_rgba c1, t_rgba c2){		
+	
+	float 	r1, g1, b1, a1;
+	float 	r2, g2, b2, a2;
+	int	ir, ig, ib, ia;
+
+	r1 = (float) ((c1 >> 24)       ) * FNUM_1_255;
+	g1 = (float) ((c1 >> 16) & 0xff) * FNUM_1_255;
+	b1 = (float) ((c1 >>  8) & 0xff) * FNUM_1_255;
+	a1 = (float) ((c1      ) & 0xff) * FNUM_1_255;
+
+	r2 = (float) ((c1 >> 24)       ) * FNUM_1_255;
+	g2 = (float) ((c1 >> 16) & 0xff) * FNUM_1_255;
+	b2 = (float) ((c1 >>  8) & 0xff) * FNUM_1_255;
+	a2 = (float) ((c1      ) & 0xff) * FNUM_1_255;
+	
+	ir = (int)((r1 * r2) * 255.0f);
+	ig = (int)((g1 * g2) * 255.0f);
+	ib = (int)((b1 * b2) * 255.0f);
+	ia = (int)((a1 * a2) * 255.0f);
+
+	return fromRGBA(ir, ig, ib, ia);
+}
+
+t_rgba mul_int(t_rgba c1, t_rgba c2)
+{
+	unsigned int r1, g1, b1, a1;
+	unsigned int r2, g2, b2, a2;
+	unsigned int r, g, b, a;
+	
+	r1 = c1 >> 24;		 r2 = c2 >> 24;
+	g1 = (c1 >> 16) & 0xff;  g2 = (c2 >> 16) & 0xff;
+	b1 = (c1 >> 8) & 0xff;   b2 = (c2 >> 8) & 0xff;
+	a1 = c1 & 0xff; 	 a2 = c2 & 0xff;
+
+	r = (r1 * r2)>>8;
+	g = (g1 * g2)>>8;
+	b = (b1 * b2)>>8;
+	a = (a1 * a2)>>8;
+
+	return fromRGBA(r, g, b, a);
+}
+```
+
+* 위 코드는 t_rgba 형 데이터 두 개를 입력받아 float 또는 int로 변환하여 각각의 컬러끼리 곱한 결과를 t_rgba로 return하는 함수이다.
 
 ***
