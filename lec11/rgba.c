@@ -39,10 +39,10 @@ t_rgba mul_int(t_rgba c1, t_rgba c2)
 	b1 = (c1 >> 8) & 0xff;   b2 = (c2 >> 8) & 0xff;
 	a1 = c1 & 0xff; 	 a2 = c2 & 0xff;
 
-	r = (r1 * r2)>>8;
-	g = (g1 * g2)>>8;
-	b = (b1 * b2)>>8;
-	a = (a1 * a2)>>8;
+	r = (r1 * r2) / 255;
+	g = (g1 * g2) / 255;
+	b = (b1 * b2) / 255;
+	a = (a1 * a2) / 255;
 
 	return fromRGBA(r, g, b, a);
 
