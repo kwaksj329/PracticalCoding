@@ -18,6 +18,7 @@
 8. [ Lecture 8 ](#lecture-8)
 9. [ Lecture 9 ](#lecture-9)
 10. [ Lecture 10 ](#lecture-10)
+11. [ Lecture 11 ](#lecture-11)
 
 ***
 
@@ -2934,7 +2935,7 @@ int main()
 ## Lecture 9
 ##### - 2022. 01. 18  
 
-### `아주고정소수점`  
+### `project`  
 
 * 아주대학교의 임베디드 시스템을 위한 고정소수점 수학 라이브러리 개발  
 
@@ -3188,7 +3189,7 @@ main () at test.c:41
         * ex) fromFloat를 fxAdd가 호출하였고, fxAdd를 main이 호출하였음을 알 수 있다.  
     * watch 변수명 : 어떤 변수의 값이 변했을 때 stop 시키고 싶다면 사용
 
-**next vs step**
+**next vs step**  
 next : 현재 소스코드의 다음 줄 실행  
 step : 다음 줄 실행하긴 하는데 호출된 함수의 소스코드로 들어가고 싶을 때 사용  
 
@@ -3198,6 +3199,48 @@ step : 다음 줄 실행하긴 하는데 호출된 함수의 소스코드로 들
 ##### - 2022. 01. 19  
 
 ### `(1) coredump 시키는 방법 & gdb`  
+
+* ulimit -a 했을 때  core file size가 unlimited 가 아니라면 ulimit -c unlimited
+
+```bash
+$ sudo service apport stop
+$ ulimit -a
+core file size          (blocks, -c) 0
+data seg size           (kbytes, -d) unlimited
+scheduling priority             (-e) 0
+file size               (blocks, -f) unlimited
+pending signals                 (-i) 256271
+max locked memory       (kbytes, -l) 65536
+max memory size         (kbytes, -m) unlimited
+open files                      (-n) 1024
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+stack size              (kbytes, -s) 8192
+cpu time               (seconds, -t) unlimited
+max user processes              (-u) 256271
+virtual memory          (kbytes, -v) unlimited
+file locks                      (-x) unlimited
+
+$ ulimit -c unlimited
+$ ulimit -a
+core file size          (blocks, -c) unlimited
+data seg size           (kbytes, -d) unlimited
+scheduling priority             (-e) 0
+file size               (blocks, -f) unlimited
+pending signals                 (-i) 256271
+max locked memory       (kbytes, -l) 65536
+max memory size         (kbytes, -m) unlimited
+open files                      (-n) 1024
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+stack size              (kbytes, -s) 8192
+cpu time               (seconds, -t) unlimited
+max user processes              (-u) 256271
+virtual memory          (kbytes, -v) unlimited
+file locks                      (-x) unlimited
+```
 
 ```bash
 $ vi coredump.c
@@ -3212,12 +3255,18 @@ Floating point exception (core dumped)
 $ gdb a.out core      # gdb 실행
 $ rm core             # 메모리를 낭비하기 때문에 디버깅이 끝나고 core 삭제하기
 
-# core생성 안될 때 (관리자가 sudo 안해줬을 때)
+```
+
+### `core생성 안될 때`  
+
+* (관리자가 sudo 안했을 때)
+
+```bash
 $ cd /var/lib/apport/coredump/ 에 core가 위치함
 $ cd ~/pcc/lec10
 $ gdb a.out /var/lib/apport/coredump/core._home_course_pcc001_pcc_lec10_a_out.4001.34e8117c-1278-4ea4-a8b5-e6131460d25d.22969.84048070
 
-(gdb) where
+(gdb) where         # error / warning 난 위치 보여줌
 #0  0x00005621a9052609 in main () at coredump.c:3
 ```
 
@@ -3243,62 +3292,75 @@ int main(){
 * release mode : cc로 컴파일
     * cd /c/Users/hwany/source/repos/Project2/x64/Debug/Project2.exe -> exe 실행파일이 여기에 위치해있다! (소스코드 있는 디렉토리에 위치 X)
 
+```bash
+$ file Project2.exe
+Project2.exe: PE32+ executable (console) x86-64, for MS Windows
+# visual studio로 컴파일하여 만들어진 exe 실행파일의 정보도 볼 수 있다.
+```
+
 * debug : cc -g와 동일
 
 * n번 라인에서 break하기: debug 모드에서 line 수 옆의 dot 누르기 (누르면 빨간색 점이 됨)  -> break point 생성됨, 계속하고 싶다면 continue 누르기
 
-* step into, next
+* step into, next : 한줄씩 실행 (gdb와 동일하다)
+    * step into : print문을 실행했다면 print의 소스코드로 들어갈 수 있다.
 
 * autos에 a 값 보여줌 == gdb에서의 print a 기능과 같다.  
 
+### `Optimization`  
+
+* Golden Rule
+    * speed - CPU > Memory > Storage > IO > Human
+    * Register > Cache (1st, 2nd) > Memory > ...
+        * 성능을 높이려면 hardware 최대한 덜 사용해야함 (ex - printf= I/O 자제)
+    * Locality
+        * 사용하는 데이터 주변의 데이터를 같이 load 해오는 locality의 특성을 이용하면 메모리를 덜 사용하여 성능이 좋아질 수 있다.
+    * Pipeline
+    * Error  
+        * 에러 처리시에도 많은 비용 사용됨
+
+### `Pipeline`  
+
+* CPU에서의 instruction 처리 단계
+    1. Fetch: 실행할 명령을 메모리에서 읽어온다.
+    2. Decode: 명령어의 해석 단계이며 명령어의 종류와 타겟 등을 판단한다.
+    3. Execute: 해석된 명령어에 따라 데이터에 대한 연산을 수행한다.
+    4. Memory: 메모리에 접근한다.
+    5. Write: 수행한 명령의 결과를 메모리에 저장한다.  
+
+<div style="text-align : center;">
+    <img src=./img/pipeline.png width="65%"/>  
+</div>
+
+* pipeline은 한 instruction의 모든 과정이 끝나기 전에, 즉 한번에 하나의 명령어만 실행하는 것이 아니라 하나의 명령어가 실행되는 도중에 다른 명령어 실행을 시작하는 식으로 동시의 여러 개의 명령어를 실행하는 기법이다.  
+
+* if문에 의해 branch가 발생하게 되면 어느 instruction이 그 다음에 실행해야 할 instruction인지 알 수 없게 된다. 따라서 pipeline이 깨져 성능이 떨어진다.
+
+* 함수호출은 되도록이면 안하는 것이 좋다.
+    * -> 대신 #define macro 를 사용하여 단순화 시키는 것이 좋다.
+* if 조건문은 비싸지만 ? 조건문은 성능이 좋다.
+* optimization을 하면 기존의 코드에서 달라지는 부분이 생기기 때문에 디버깅이 불가능하다.
+
 ### `gprof - GNU Profiling`  
 
+* 성능을 측정하기 위해서 사용
+
+* -gp option을 사용하여 컴파일 한다.
+    * cc -gp -Wall test.c test
+
+* 프로그램을 실행하고 gmon.out 파일을 생성한다.
+    * $ ./test
+
+* gprof를 실행한다.
+    * $ gprof test gmon.out
+
 ```bash
-$ cc -pg test.c
+$ cc -pg test.c         #profiling 하려면 -pg 옵션 넣어야함
 $ a.out
 $ ls -al
 -rw-r--r--  1 pcc001 pcc  714  1월 19 15:45 gmon.out
 $ gprof a.out gmon.out
 # call graph 볼 수 있다.
-
-Flat profile:
-
-Each sample counts as 0.01 seconds.
-  %   cumulative   self              self     total
- time   seconds   seconds    calls  ns/call  ns/call  name
- 31.98      0.07     0.07 33554432     2.10     2.10  toFloat
- 29.69      0.14     0.07                             main
- 18.27      0.18     0.04 16777216     2.40     2.40  fromFloat
- 13.70      0.21     0.03 16777216     1.80     8.39  fxAdd
-  6.85      0.22     0.02 16777216     0.90     0.90  fxAdd2
-
-# self: 이 함수 안에서 발생했던 time 
-
-		     Call graph (explanation follows)
-
-
-granularity: each sample hit covers 2 byte(s) for 4.52% of 0.22 seconds
-
-index % time    self  children    called     name
-                                                 <spontaneous>
-[1]    100.0    0.07    0.16                 main [1]
-                0.03    0.11 16777216/16777216     fxAdd [2]
-                0.02    0.00 16777216/16777216     fxAdd2 [5]
------------------------------------------------
-                0.03    0.11 16777216/16777216     main [1]
-[2]     63.6    0.03    0.11 16777216         fxAdd [2]
-                0.07    0.00 33554432/33554432     toFloat [3]
-                0.04    0.00 16777216/16777216     fromFloat [4]
------------------------------------------------
-                0.07    0.00 33554432/33554432     fxAdd [2]
-[3]     31.8    0.07    0.00 33554432         toFloat [3]
------------------------------------------------
-                0.04    0.00 16777216/16777216     fxAdd [2]
-[4]     18.2    0.04    0.00 16777216         fromFloat [4]
------------------------------------------------
-                0.02    0.00 16777216/16777216     main [1]
-[5]      6.8    0.02    0.00 16777216         fxAdd2 [5]
------------------------------------------------
 
 # i += 25로 바꿔서 10배 더 느리게 실행된 결과
 
@@ -3313,6 +3375,8 @@ Each sample counts as 0.01 seconds.
  18.48      2.23     0.48 171798692     2.81     9.65  fxAdd
  11.94      2.54     0.31 171798692     1.81     1.81  fxAdd2
   3.08      2.62     0.08                             frame_dummy
+
+# self: 이 함수 안에서 발생했던 time 
 
 granularity: each sample hit covers 2 byte(s) for 0.38% of 2.62 seconds
 
@@ -3339,10 +3403,13 @@ index % time    self  children    called     name
                                                  <spontaneous>
 [6]      3.1    0.08    0.00                 frame_dummy [6]
 -----------------------------------------------
-
 ```
 
+* 주의할 점: 충분히 많이 call 해야 정확한 측정이 가능하다.
+
 * 함수의 호출은 매우 비싸다!
+
+* 함수의 호출이 비싸기 때문에 아래처럼 바꿔서 수정해봄
 
 ```c
 fixed32 fxAdd(fixed32 a, fixed32 b)
@@ -3381,8 +3448,6 @@ index % time    self  children    called     name
 -----------------------------------------------
 ```
 
-* 함수의 호출이 비싸기 때문에 이렇게 바꿔서 수정해봄
-
 * function call을 하지 않았더니 거의 2배 더 빨라진 결과를 얻을 수 있었다.
 
 ```c
@@ -3391,35 +3456,13 @@ index % time    self  children    called     name
 #define toFloat(xa) (((float)(xa)) * FX_2_MINUS_16)
 ```
 
-```bash
-Each sample counts as 0.01 seconds.
-  %   cumulative   self              self     total
- time   seconds   seconds    calls  ns/call  ns/call  name
- 46.79      0.61     0.61 171798692     3.57     3.57  fxAdd
- 30.68      1.01     0.40 171798692     2.34     2.34  fxAdd2
- 16.11      1.23     0.21                             main
-  6.90      1.32     0.09                             toFloat_fn
+* macro 를 사용한 결과 : function call 사용하지 않은 경우와 비슷하였다.
 
-granularity: each sample hit covers 2 byte(s) for 0.76% of 1.32 seconds
+* 주의할 점: 10~20% 오차 발생할 수 있다는 점 기억해두기  
 
-index % time    self  children    called     name
-                                                 <spontaneous>
-[1]     93.1    0.21    1.01                 main [1]
-                0.61    0.00 171798692/171798692     fxAdd [2]
-                0.40    0.00 171798692/171798692     fxAdd2 [3]
------------------------------------------------
-                0.61    0.00 171798692/171798692     main [1]
-[2]     46.6    0.61    0.00 171798692         fxAdd [2]
------------------------------------------------
-                0.40    0.00 171798692/171798692     main [1]
-[3]     30.5    0.40    0.00 171798692         fxAdd2 [3]
------------------------------------------------
-                                                 <spontaneous>
-[4]      6.9    0.09    0.00                 toFloat_fn [4]
------------------------------------------------
-```
+`long long & 64bit`  
 
-* 10~20% 오차 발생할 수 있음  
+* long long 자료형을 사용하도록 코드를 수정한 결과
 
 ```c
 //test2.c
@@ -3452,85 +3495,18 @@ int main()
 }
 ```
 
-```bash
-Each sample counts as 0.01 seconds.
-  %   cumulative   self              self     total
- time   seconds   seconds    calls  ns/call  ns/call  name
- 43.32      0.56     0.56                             main
- 32.87      0.99     0.43 171798692     2.49     2.49  fxMul2
- 20.89      1.26     0.27 171798692     1.58     1.58  fxMul1
-  3.48      1.31     0.05                             frame_dummy
-
-		     Call graph (explanation follows)
-
-
-granularity: each sample hit covers 2 byte(s) for 0.76% of 1.31 seconds
-
-index % time    self  children    called     name
-                                                 <spontaneous>
-[1]     96.5    0.56    0.70                 main [1]
-                0.43    0.00 171798692/171798692     fxMul2 [2]
-                0.27    0.00 171798692/171798692     fxMul1 [3]
------------------------------------------------
-                0.43    0.00 171798692/171798692     main [1]
-[2]     32.7    0.43    0.00 171798692         fxMul2 [2]
------------------------------------------------
-                0.27    0.00 171798692/171798692     main [1]
-[3]     20.8    0.27    0.00 171798692         fxMul1 [3]
------------------------------------------------
-                                                 <spontaneous>
-[4]      3.5    0.05    0.00                 frame_dummy [4]
------------------------------------------------
-```
+`long long & 32bit`  
 
 * cc -pg -m32 test2.c       //32bit 컴퓨터용으로 컴파일 함
 * a.out
 
 ```bash
-Each sample counts as 0.01 seconds.
-  %   cumulative   self              self     total
- time   seconds   seconds    calls  ns/call  ns/call  name
- 46.16      0.79     0.79                             main
- 24.25      1.21     0.42 171798692     2.43     2.43  fxMul1
- 13.15      1.44     0.23 171798692     1.32     1.32  fxMul2
- 12.27      1.65     0.21                             __x86.get_pc_thunk.bx
-  3.51      1.71     0.06                             __x86.get_pc_thunk.dx
-  0.58      1.72     0.01                             __gmon_start__
-  0.58      1.73     0.01                             _dl_relocate_static_pie
-
-		     Call graph (explanation follows)
-
-
-granularity: each sample hit covers 2 byte(s) for 0.58% of 1.73 seconds
-
-index % time    self  children    called     name
-                                                 <spontaneous>
-[1]     83.1    0.79    0.64                 main [1]
-                0.42    0.00 171798692/171798692     fxMul1 [2]
-                0.23    0.00 171798692/171798692     fxMul2 [3]
------------------------------------------------
-                0.42    0.00 171798692/171798692     main [1]
-[2]     24.1    0.42    0.00 171798692         fxMul1 [2]
------------------------------------------------
-                0.23    0.00 171798692/171798692     main [1]
-[3]     13.1    0.23    0.00 171798692         fxMul2 [3]
------------------------------------------------
-                                                 <spontaneous>
-[4]     12.2    0.21    0.00                 __x86.get_pc_thunk.bx [4]
------------------------------------------------
-                                                 <spontaneous>
-[5]      3.5    0.06    0.00                 __x86.get_pc_thunk.dx [5]
------------------------------------------------
-                                                 <spontaneous>
-[6]      0.6    0.01    0.00                 __gmon_start__ [6]
------------------------------------------------
-                                                 <spontaneous>
-[7]      0.6    0.01    0.00                 _dl_relocate_static_pie [7]
------------------------------------------------
-
 $ file a.out
 a.out: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 3.2.0, BuildID[sha1]=e6b9b35bc23da8fcf7462c1df17b7a2c6063cb88, not stripped
 ```
+
+* 64bit로 컴파일 했을 때보다 32bit에서 mul1은 엄청 느려졌고, mul2는 조금 느려졌다.  
+    * 32bit, 64bit 컴파일 시에도 gprof로 성능 비교 가능 (대신 오차 주의하기)
 
 * 굉장히 오차가 많이 때문에 통계적인 기법을 사용해서 테스팅해보는 것을 권장한다.
     * ex - outlier 빼고 통계 내보기
@@ -3548,25 +3524,83 @@ a.out: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically 
 
 * ex - unsigned char
     * val =  b7 * 27 + b6 * 26 + b5 * 25 + …… + b1 * 21 + b0 * 20
+    * 가장 작은 수 : 0 ~ 가장 큰 수 : 255, 데이터의 해상도: 256 
 
 * ex - signed char
     * sign bit가 1이면 : –(~b6 * 26 + ~b5 * 25 + …… + ~b1 * 21 + ~b0 * 20 + 1) 
-    * sign bit가 0이면 : b6 * 26 + b5 * 25 + …… + b1 * 21 + b0 * 20
+    * sign bit가 0이면 : b6 * 26 + b5 * 25 + …… + b1 * 21 + b0 * 20  
 
 * c언어의 float는 실수를 표현할 수 없다.
     * 실수를 표현하기 위해서는 무한히 큰 메모리가 필요하다.
-    * 따라서 어느정도에서 근사치를 컴퓨터에 저장한다. (approximation)
+    * 따라서 어느정도에서 근사치를 컴퓨터에 저장한다. (approximation)  
 
 * float
     * (sign * -2 + 1) * (1.0 + fraction * 2-23 ) * 2 ^ (exp – 127) 
+    * 실수를 approximation한 데이터 타입이다.  
 
 * others
     * half – sign 1, exp 5, fraction 11
     * double – sign 1, exp 11, fraction 53
-    * quadruple – sing 1, exp 15, fraction 113
+    * quadruple – sign 1, exp 15, fraction 113  
+
+* int, char, short : fixed point number 이다.  
 
 * fixed point number
-    *  fixed point는 실수를 표현할 때 정밀도가 떨어진다.
+    *  fixed point는 실수를 표현할 때 정밀도가 떨어진다.  
+
+* FX_S03_04로 표현할 수 있는 가장 큰 수와 작은 수
+    * **내 시스템에서 표현할 수 있는 가장 큰 수와 가장 작은 수 보고서에 적기**  
+    * signed 8bit : -128 ~ 127 표현 가능
+    * FX_S03_04의 val은 정수로 표현된 값 / 16이다.
+    * 따라서 -128/16 ~ 127/16 = -8 ~ 7.9375이다.
+
+* val = 정수로 표현된 값 (ival) * (2 ^ (-q))
+    * (2 ^ (-q)) = 제일 작은 해상도, 서로 구분할 수 있는 숫자의 차이
+
+* 사칙연산
+    * v_a (fixed point) -> iv_a (정수로 표현한 값)
+    * v_b (fixed point) -> iv_b (정수로 표현한 값)
+    * 덧셈 / 뺄셈: v = v_a + v_b = iv_a * (2^-q)  + iv_b * (2^-q)   = (iv_a + iv_b) * (2^-q) 
+        * iv = iv_a + iv_b  
+
+    * 곱셈: v = v_a * v_b = iv_a * (2^-q)  * iv_b * (2^-q)   = (iv_a * iv_b) * (2^-2q) 
+        * iv = iv_a * iv_b * (2^-q)
+        * 위 식의 2^-q에 2^q 를 곱해주면 2^-q로 만들 수 있다.
+
+    * 나눗셈: v = v_a / v_b = iv_a * (2^-q)  / iv_b * (2^-q)   = (iv_a / iv_b)  
+        * iv = iv_a / iv_b * (2^q)
+        * iv = iv_a * (2^q) / iv_b 
+
+* #define FX_S32_31 ((1<<16) | (32<<8) | (31))
+    * 1에 256*256 곱하기 + 32에 256 곱하기 + 31
+
+* 조건부 compile
+    * #define FX_SYSTEM_INTEGER 32 & 64
+        * 이거에 따라서 자기의 코드 다르게 컴파일 되어야함 (두세트 짜야함)
+    * #define FX_POINT = #define FX_S32_31
+    * #define FX_OP_PREFERRENCE
+        * FX_OP_FLOAT - float 로 전부 바꿔서 연산
+        * FX_OP_PRECISION - 정밀도가 높은 연산 
+        * FX_OP_FAIR - 꽤 괜찮은 연산
+        * FX_OP_PERFORMANCE - 성능 높은 연산
+
+* Fixed point arithmetic
+    * 연산 – 덧셈/뺄셈/곱셈/나눗셈 (복수의 장단점이 있는 함수)
+    * 함수 – Sine, Cosine, Tan, Sqrt (가능하면)
+        * 전부 table로 만들 수 있다 (메모리에 만들어두기)
+            * ex - 0도~90도까지 array table 만들고 만약 30.5도면 30~31도 선형으로 interpolation 해도 됨 (선형 보간법)
+    * 변환 – from/to double, float, int, short, longlong
+    * 상수 – PI, 1/PI, e, log 10, log 2, 자주 쓰이는 수
+        * #define으로 정의함
+
+`보고서 - project 분석 - 성능과 정밀도`  
+
+* 특히 곱셈 / 나눗셈에 대해
+    * 성능 (천만번 - 몇초) / 정밀도 분석
+    * 성능 분석 전: function으로 만들었더니 이러이러한 결과가 나왔다.
+    * 성능 분석 후: MACRO로 개발
+    * 오류처리에 대한 처리
+        * 오버플로우가 발생했을 때 어떻게 해야한다.
 
 ***
 
