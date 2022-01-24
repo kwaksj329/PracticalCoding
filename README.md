@@ -3959,13 +3959,54 @@ t_rgba mul_int(t_rgba c1, t_rgba c2)
 
 ### `project`  
 
+> lec12에 /tmp/lec12/* 을 모두 copy 해옴 (템플릿 코드)
+
 * fx_head.h 그냥 include 해서 사용하기
 
-* fx_s32_31.c fx_s32_31.h 를 테스트하는 코드 필요
+* Operation preference
+    * FX_OP_FLOAT : 연산 floating으로 할 때
+    * FX_OP_PRECISION : 정밀한 계산
+    * FX_OP_FAIR : 꽤 정밀한 계산
+    * FX_OP_PERFORMANCE : 성능 좋은 계산
+
+* fx_s32_31.c fx_s32_31.h 를 작성하고 테스트하는 코드 필요
+
+```c
+#define FX_SYSTEM_INTEGER       32                              // or 64 32
+#define FX_SYSTEM_FLOAT         32                              // or 32 64
+```
+
+* FX_SYSTEM_INTEGER & FLOAT = 자기가 정해야함
+
+* 우리 ssh 서버 : 64bit integer가 32bit integer보다 계산이 더 빠르다.
+
+* FX_SYSTEM_INTEGER로 32를 선언하면, 조건부 컴파일에서 32bit 컴파일에 맞춰서 컴파일 되도록 해야함 (우리가 짜야함 - 선택적 컴파일)
+
+```c
+#if FX_SYSTEM_FLOAT==64
+#define  fromFloat(d)           ((fixed)((d)*DOUBLE_Q_VALUE))
+#define  toFloat(d)             ((double)(d)*DOUBLE_1_Q_VALUE)
+#else // == 32
+#define  fromFloat(d)           ((fixed)((d)*FLOAT_Q_VALUE))
+#define  toFloat(d)             ((float)(d)*FLOAT_1_Q_VALUE)
+#endif
+```
+
+* FX_SYSTEM_FLOAT==64 이면 이 기계는 64bit floating 연산이나 32bit floating 연산이나 성능이 똑같기 때문에 if 문으로 double 을 사용하는 fromFloat / to Float 를 사용하도록 한다.
+
+* else는 32bit floating 을 사용하고 싶을 때 가능하도록 남겨둔다.
+
+* fx_s15_16.h에 있는 나머지 constant는 그대로 사용가능
+
+* 일반 규칙
+    * func.c 의 f1(), f2()
+    * func.h 의 #define F1_f.., extern f1(), f2()
+    * test.c는 함수를 쓰기 위해 반드시 #include "func.h"  
+    * func.c를 include 하지 않는 이유 - func.c가 10만줄이라면 매번 include 해서 컴파일을 해야하기 때문  
 
 ### `dependency (전제조건)`    
 
-```c
+```bash
 $ cc -c main.c fx_s15_16.c      // main.o fx_s15_16.o 파일 만들어짐
 //이후에 fx_s15_16.h 파일 수정함
 $ cc main.o fx_s15_16.o         //파일 수정하였기 때문에 dependency 가 있어 object 파일로 컴파일 불가
@@ -3976,10 +4017,10 @@ $ cc main.o fx_s15_16.o         //파일 수정하였기 때문에 dependency �
 ### `make (GNU make)`  
 
 * Lots of source files: foo1.h, foo2.h, foobar1.cpp….
-* How to manage them all
+* How to manage them all - 모두 쉽게 관리하는 방법 없을까?
 * Compiling is not easy
     * different target system
-    * different purpose of compiling – debug, release, preprocessor…
+    * different purpose of compiling – debug, release, preprocessor… - 목적에 따른 컴파일링
     * compile what we need to 
     * dependency
 
@@ -3988,33 +4029,46 @@ $ cc main.o fx_s15_16.o         //파일 수정하였기 때문에 dependency �
 
 * `Makefile` 이라는 파일을 만들면 make를 사용하도록 작성할 수 있다.
     * given targets (usually file to be created)
+        * 타겟 = 생성되는 파일 (ex - a.out:)
     * Specify dependencies for each target
+        * a.out를 만들기 위해 필요한 파일들
     * Give command to create target from dependencies
+        * ex - ccs
     * `make` recursively build targets from dependencies
+        * dependency를 따라가며 필요한 것들 만든다.
         * make 라는 명령어 사용, make 뒤에 파일명 사용하지 않으면 현재 디렉토리에 있는 Makefile 기본으로 사용한다.
     * recompilation – time-stamp of modification 
+        * ls -al 했을 때 나오는 정보 : time-stamp
 
 ### `Makefile 만드는 방법`  
 
-taget ($@) dependency files ($< $^ $?)
+taget (`$@`) dependency files (`$< $^ $?`)  
 `main.o: main.c main.h`
 `	cc –c main.c –o main.o`
 tab	   Execute if dependency changes
 
-* Macro
-```bash
+* main.o를 만들기 위해 필요한 파일은 main.c, main.h 이다.  
+
+* Macro  
+
+```makefile
 OBJS = main.o data.o
 $(OBJS)
 ```
 
-* #default shell is /bin/sh 
+* #default shell is /bin/sh  
+    * make를 실행하면 새로운 오리지널 sh 쉘이 실행된다.
 * #if you want change SHELL:=/bin/bash b: SHELL:=/bin/bash
     * shell이 아니라 bash를 사용할 수 있다.
+
+### `Makefile (1)`  
 
 ```bash
 main: main.c fx_s15_16.c fx_head.h fx_s15_16.h
         cc main.c fx_s15_16.c -o main
 ```
+
+* main.c fx_s15_16.c fx_head.h fx_s15_16.h : make 타겟 파일이 만들어지기 위한 dependency가 있는 파일들
 
 * 실행파일로 a.out가 아닌 main이 만들어진다.
 
@@ -4022,18 +4076,18 @@ main: main.c fx_s15_16.c fx_head.h fx_s15_16.h
 $ make
 cc main.c fx_s15_16.c -o main
 $ make
-make: 'main' is up to date.
+make: 'main' is up to date.         # 수정된 파일이 없으므로 main 파일을 다시 만들 필요가 없어서 make 하지 않는다.
 # main.c 를 수정함
 $ make
 cc main.c fx_s15_16.c -o main       # compile 다시한다.
 
 # 또는 touch main.c
-$ touch main.c                      # main.c의 timestamps가 바뀌었다.
-$ make                              # 따라서 make 가능함
+$ touch main.c                      # touch로 main.c의 timestamps가 바뀌었다.
+$ make                              # 따라서 make 가 실행된다.
 cc main.c fx_s15_16.c -o main
 
 $ touch *.h                         # 헤더파일을 touch해도 가능
-$ make                              # 따라서 make 가능함
+$ make                              # 따라서 make 가 실행된다.
 cc main.c fx_s15_16.c -o main
 
 $ vi Makefile                       # makefile에 -g 옵션 넣어서 수정함
@@ -4047,9 +4101,9 @@ make: 'main' is up to date.
 
 * 근데 main이 최신 파일이니까 컴파일 할 필요가 없어서 또 make 하면 make: 'main' is up to date. 라고 뜬다.
 
-* touch: change file timestamps
+* touch: change file timestamps - c파일이나 h파일 등을 수정했을 때는 make가 되지만, Makefile을 수정해도 다시 make, 컴파일하지 않는다.
 
-```bash
+```makefile
 main: main.c fx_s15_16.c fx_head.h fx_s15_16.h
         cc -g main.c fx_s15_16.c -o main
 clean:
@@ -4060,9 +4114,11 @@ clean:
 
 * 따라서 make clean 후 make 하면 항상 새로 컴파일된다.
 
-* touch로 수정한 시간을 원하는 시간으로 설정할 수 있기 때문에 file의 modification time은 보안상 의미가 없다.
+* touch로 수정한 시간을 원하는 시간으로 설정할 수 있기 때문에 file의 modification time은 보안상의 의미가 없다.
 
-```bash
+### `Makefile (2)`  
+
+```makefile
 main: main.o fx_s15_16.o
 	cc main.o fx_s15_16.o -o main
 main.o: main.c fx_head.h fx_s15_16.h
@@ -4072,6 +4128,11 @@ fx_s15_16.o: fx_head.h fx_s15_16.c
 clean:
 	rm main *.o *.out
 ```
+
+* cc -c 로 object 파일을 만들고, 이를 사용해서 컴파일 하고 싶다면 위 Makefile 사용
+    * main.c fx_head.h fx_s15_16.h 를 사용하여 main.o 생성
+    * fx_head.h fx_s15_16.c 를 사용하여 fx_s15_16.o 생성
+    * 만들어진 main.o fx_s15_16.o 를 사용하여 컴파일 후 main 실행파일이 생성된다.
 
 ```bash
 $ make
@@ -4085,21 +4146,15 @@ cc -c main.c
 cc main.o fx_s15_16.o -o main
 ```
 
+* make 실행시 순서대로 main.o, fx_s15_16.o 를 생성하여 main 실행파일을 만든다.
+
+* 만약 main.c 파일만 수정되었다면 fx_s15_16.o를 다시 만들 필요가 없기 때문에 main.o 파일만 생성하여 컴파일한다.
+
 * 내가 원하는 파일만 touch 해서 그 파일만 컴파일 가능하다.
 
-```bash
-OBJS = main.o fx_s15_16.o
-main: $(OBJS)
-        cc main.o fx_s15_16.o -o main
-main.o: main.c fx_head.h fx_s15_16.h
-        cc -c main.c
-fx_s15_16.o: fx_head.h fx_s15_16.c
-        cc -c fx_s15_16.c
-clean:
-        rm main *.o *.out
-```
+### `Makefile (3)`  
 
-```bash
+```makefile
 OBJS = main.o fx_s15_16.o
 main: $(OBJS)
         cc $(OBJS) -o $@
@@ -4111,20 +4166,34 @@ clean:
         rm main $(OBJS)
 ```
 
+* object 파일을 OBJS 라고 선언하면 $(OBJS) 에 대신 들어간다.
+
+* `$@` : 타겟 파일 이름이 들어간다.
+* `$<` : 첫번째 prerequisite, dependency 에 있는 이름이 들어간다.
+
 * Automatic Variables - Basic
 
 |Automatic Variable|Content|
 |:-----------------:|:----:|
-|$@|The file name of the target of the rule.|
-|$%|The target member name, when the target is an archive member.|
-|$<|The name of the first prerequisite.|
-|$*|The stem with which an implicit rule matches|
-|$?|The names of all the prerequisites that are newer than the target, with spaces between them.|
-|$^|The names of all the prerequisites, with spaces between them.|
-|$+|This is like '$^', but prerequisites listed more than once are duplicated in the order they were listed in the makefile.|
-|$|The names of all the order-only prerequisites, with spaces between them.|
+|`$@`|The file name of the target of the rule.|
+|`$%`|The target member name, when the target is an archive member.|
+|`$<`|The name of the first prerequisite.|
+|`$*`|The stem with which an implicit rule matches|
+|`$?`|The names of all the prerequisites that are newer than the target, with spaces between them.|
+|`$^`|The names of all the prerequisites, with spaces between them.|
+|`$+`|This is like '$^', but prerequisites listed more than once are duplicated in the order they were listed in the makefile.|
+|`$|`|The names of all the order-only prerequisites, with spaces between them.|
+|`'$(@D)'`|The directory part of the file name of the target, with the trailing slash removed.|
+|`'$(@F)'`|The file-within-directory part of the file name of the target.|
+|`'$(*D)''$(*F)'`|The directory part and the file-within-directory part of the stem; dir and foo in this example.|
 
-```bash
+* 이러한 automatic variable 을 사용하여 더 간단하고 짧은 Makefile을 만들 수 있다.
+    * 더 많은 변수는 피피티 참고
+
+
+* CCFLAGS 를 사용한 Makefile  
+
+```makefile
 OBJS = main.o fx_s15_16.o
 CCFLAGS = -Wall -g -pg
 main: $(OBJS)
@@ -4137,12 +4206,30 @@ clean:
         rm main $(OBJS)
 ```
 
+* Pre-defined MACRO  
+
+|MACRO|Description|
+|:-----------------:|:----:|
+|AR|Archive-maintain program; default ‘ar’|
+|ARGLAGS|Options of AR command|
+|AS|Assembler. Default is ‘as’|
+|ASFLAGS|Options of AS command|
+|CC|C Complier. Default is ‘cc’|
+|CCFLAGS|Options of C Compiler|
+|CXX|C++ Compiler: Default is ‘g++’|
+|CXXFLAGS|Options of C++ Compiler|
+|LDFLAGS|Options of ‘ld’ command|
+
 ```bash
 $ make
 cc main.o fx_s15_16.o -Wall -g -pg -o main
 ```
 
-```bash
+* CCFLAGS에 넣은 c 컴파일러 옵션들이 적용되어 컴파일 된 것을 볼 수 있다.
+
+### `Makefile (4)`  
+
+```makefile
 OBJS = main.o fx_s15_16.o
 CCFLAGS = -Wall -g -pg
 main: $(OBJS)
@@ -4153,11 +4240,22 @@ clean:
         rm main $(OBJS)
 ```
 
-* dependency 제대로 작동안함
-
-* `$ gccmakedep main.c fx_s15_16.c` : gcc make dependency
-
 ```bash
+$ make
+cc -c -Wall -g -pg main.c
+cc -c -Wall -g -pg fx_s15_16.c
+cc main.o fx_s15_16.o -Wall -g -pg -o main
+
+$ touch *.h
+$ make
+make: 'main' is up to date.         # 파일을 수정해도 make를 새로하지 않는다.
+```
+
+* 위 Makefile은 실행이 잘 되긴 하지만 dependency 제대로 작동하지 않는다.
+
+* 따라서 `$ gccmakedep main.c fx_s15_16.c` 실행 : gcc make dependency
+
+```makefile
 OBJS = main.o fx_s15_16.o
 CCFLAGS = -Wall -g -pg
 main: $(OBJS)
@@ -4185,7 +4283,7 @@ fx_s15_16.o: fx_s15_16.c /usr/include/stdc-predef.h fx_head.h fx_s15_16.h \
  /usr/include/x86_64-linux-gnu/bits/mathcalls.h
 ```
 
-* `gccmakedep main.c fx_s15_16.c` 실행시 자동으로 만들어짐
+* `gccmakedep main.c fx_s15_16.c` 실행시 dependency 파일 자동으로 만들어짐
 
 ```bash
 $ touch *.h
@@ -4195,10 +4293,12 @@ cc -c -Wall -g -pg fx_s15_16.c
 cc main.o fx_s15_16.o -Wall -g -pg -o main
 ```
 
-```bash
+* gccmakedep main.c fx_s15_16.c 실행 후에는 실행 전과는 다르게 dependency가 있는 파일을 수정하면 새로 컴파일하는 모습을 볼 수 있다.
+
+```makefile
 OBJS = main.o fx_s15_16.o
-#CCFLAGS = -Wall -g -pg
-CCFLAGS = -Wall -O3
+CCFLAGS = -Wall -g -pg
+#CCFLAGS = -Wall -O3
 main: $(OBJS)
         cc $(OBJS) $(CCFLAGS) -o $@
 .c.o:
@@ -4208,18 +4308,28 @@ debug: main.c fx_s15_16.c fx_s15_16.h fx_head.h
 clean:
         rm main $(OBJS)
 # DO NOT DELETE - gccmakedep main.c fx_s15_16.c
+```
 
+```bash
 $ make debug
 cc -o main_for_debug -pg -g main.c fx_s15_16.c
 ```
 
+* make debug 실행시 디버깅을 위한 컴파일 옵션이 적용되어 컴파일 되고, main_for_debug 라는 실행파일이 생성되도록 할 수 있다. 
+
 ### `CMake`  
 
-```bash
-$ cat CMakeLists.txt
+```cmake
+# CMakeLists.txt
 project(main)
 ADD_EXECUTABLE(main main.c fx_s15_16.c)
+```
 
+* main 을 만들기 위해 main.c, fx_s15_16.c 두 파일이 필요하다.
+
+* cmake 파일을 만들기 위해 CMakeLists.txt 파일에 위와 같이 작성하였다.
+
+```cmake
 $ cmake .
 $ make          # main 생성됨
 Scanning dependencies of target main
@@ -4230,7 +4340,35 @@ Scanning dependencies of target main
 ```
 
 * CMakeFiles, cmake_install.cmake, CMakeLists.txt, makefile도 생성됨
+    * main 실행파일 생성되어 실행 가능하다.
 
+```cmake
+# 요구 CMake 최소 버전, 2.8 이하에서는 만들지 않는다.
+CMAKE_MINIMUM_REQUIRED ( VERSION 2.8 )
+ 
+# 프로젝트 이름 및 버전, 실행파일 안에 버전 정보가 들어간다.
+PROJECT ( "andromeda" )
+SET ( PROJECT_VERSION_MAJOR 0 )
+SET ( PROJECT_VERSION_MINOR 1 )
+ 
+# 빌드 형상(Configuration) 및 Makefile 생성 여부, debug, release
+SET ( CMAKE_BUILD_TYPE Debug )
+SET ( CMAKE_VERBOSE_MAKEFILE true )         # verbose (주저리주저리)
 
+# 빌드 대상 바이너리 파일명 및 소스 파일 목록
+SET ( OUTPUT_ELF
+        "${CMAKE_PROJECT_NAME}-${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.out"
+        )
+SET ( SRC_FILES
+        bar.c
+        foo.c
+        main.c
+        )
+ 
+# 공통 컴파일러, cc, gcc 설정 가능
+SET ( CMAKE_C_COMPILER "gcc" )
+```
+
+//2시간 35분
 
 ***
