@@ -19,6 +19,7 @@
 9. [ Lecture 9 ](#lecture-9)
 10. [ Lecture 10 ](#lecture-10)
 11. [ Lecture 11 ](#lecture-11)
+12. [ Lecture 12 ](#lecture-12)
 
 ***
 
@@ -3949,5 +3950,287 @@ t_rgba mul_int(t_rgba c1, t_rgba c2)
 ```
 
 * 위 코드는 t_rgba 형 데이터 두 개를 입력받아 float 또는 int로 변환하여 각각의 컬러끼리 곱한 결과를 t_rgba로 return하는 함수이다.
+
+***
+
+## Lecture 12  
+
+##### - 2022. 01. 24   
+
+### `project`  
+
+* fx_head.h 그냥 include 해서 사용하기
+
+* fx_s32_31.c fx_s32_31.h 를 테스트하는 코드 필요
+
+### `dependency (전제조건)`    
+
+```c
+$ cc -c main.c fx_s15_16.c      // main.o fx_s15_16.o 파일 만들어짐
+//이후에 fx_s15_16.h 파일 수정함
+$ cc main.o fx_s15_16.o         //파일 수정하였기 때문에 dependency 가 있어 object 파일로 컴파일 불가
+```
+
+따라서 이런 불편함을 해결하기 위해 make 를 사용한다.  
+
+### `make (GNU make)`  
+
+* Lots of source files: foo1.h, foo2.h, foobar1.cpp….
+* How to manage them all
+* Compiling is not easy
+    * different target system
+    * different purpose of compiling – debug, release, preprocessor…
+    * compile what we need to 
+    * dependency
+
+* Solution is 
+    * make
+
+* `Makefile` 이라는 파일을 만들면 make를 사용하도록 작성할 수 있다.
+    * given targets (usually file to be created)
+    * Specify dependencies for each target
+    * Give command to create target from dependencies
+    * `make` recursively build targets from dependencies
+        * make 라는 명령어 사용, make 뒤에 파일명 사용하지 않으면 현재 디렉토리에 있는 Makefile 기본으로 사용한다.
+    * recompilation – time-stamp of modification 
+
+### `Makefile 만드는 방법`  
+
+taget ($@) dependency files ($< $^ $?)
+`main.o: main.c main.h`
+`	cc –c main.c –o main.o`
+tab	   Execute if dependency changes
+
+* Macro
+```bash
+OBJS = main.o data.o
+$(OBJS)
+```
+
+* #default shell is /bin/sh 
+* #if you want change SHELL:=/bin/bash b: SHELL:=/bin/bash
+    * shell이 아니라 bash를 사용할 수 있다.
+
+```bash
+main: main.c fx_s15_16.c fx_head.h fx_s15_16.h
+        cc main.c fx_s15_16.c -o main
+```
+
+* 실행파일로 a.out가 아닌 main이 만들어진다.
+
+```bash
+$ make
+cc main.c fx_s15_16.c -o main
+$ make
+make: 'main' is up to date.
+# main.c 를 수정함
+$ make
+cc main.c fx_s15_16.c -o main       # compile 다시한다.
+
+# 또는 touch main.c
+$ touch main.c                      # main.c의 timestamps가 바뀌었다.
+$ make                              # 따라서 make 가능함
+cc main.c fx_s15_16.c -o main
+
+$ touch *.h                         # 헤더파일을 touch해도 가능
+$ make                              # 따라서 make 가능함
+cc main.c fx_s15_16.c -o main
+
+$ vi Makefile                       # makefile에 -g 옵션 넣어서 수정함
+$ make                              # make 불가
+make: 'main' is up to date.
+```
+
+* 이 파일이 가장 최근에 modify 된게 언제인지 : timestamps
+
+* main.c fx_s15_16.c fx_s15_16.h : dependency 가진다.  
+
+* 근데 main이 최신 파일이니까 컴파일 할 필요가 없어서 또 make 하면 make: 'main' is up to date. 라고 뜬다.
+
+* touch: change file timestamps
+
+```bash
+main: main.c fx_s15_16.c fx_head.h fx_s15_16.h
+        cc -g main.c fx_s15_16.c -o main
+clean:
+        rm main *.o *.out
+```
+
+* make clean 실행시 main과 object 파일, out 파일이 삭제된다.  
+
+* 따라서 make clean 후 make 하면 항상 새로 컴파일된다.
+
+* touch로 수정한 시간을 원하는 시간으로 설정할 수 있기 때문에 file의 modification time은 보안상 의미가 없다.
+
+```bash
+main: main.o fx_s15_16.o
+	cc main.o fx_s15_16.o -o main
+main.o: main.c fx_head.h fx_s15_16.h
+	cc -c main.c
+fx_s15_16.o: fx_head.h fx_s15_16.c
+	cc -c fx_s15_16.c
+clean:
+	rm main *.o *.out
+```
+
+```bash
+$ make
+cc -c main.c
+cc -c fx_s15_16.c
+cc main.o fx_s15_16.o -o main
+
+$ touch main.c
+$ make
+cc -c main.c
+cc main.o fx_s15_16.o -o main
+```
+
+* 내가 원하는 파일만 touch 해서 그 파일만 컴파일 가능하다.
+
+```bash
+OBJS = main.o fx_s15_16.o
+main: $(OBJS)
+        cc main.o fx_s15_16.o -o main
+main.o: main.c fx_head.h fx_s15_16.h
+        cc -c main.c
+fx_s15_16.o: fx_head.h fx_s15_16.c
+        cc -c fx_s15_16.c
+clean:
+        rm main *.o *.out
+```
+
+```bash
+OBJS = main.o fx_s15_16.o
+main: $(OBJS)
+        cc $(OBJS) -o $@
+main.o: main.c fx_head.h fx_s15_16.h
+        cc -c $<
+fx_s15_16.o: fx_s15_16.c fx_s15_16.h
+        cc -c $<
+clean:
+        rm main $(OBJS)
+```
+
+* Automatic Variables - Basic
+
+|Automatic Variable|Content|
+|:-----------------:|:----:|
+|$@|The file name of the target of the rule.|
+|$%|The target member name, when the target is an archive member.|
+|$<|The name of the first prerequisite.|
+|$*|The stem with which an implicit rule matches|
+|$?|The names of all the prerequisites that are newer than the target, with spaces between them.|
+|$^|The names of all the prerequisites, with spaces between them.|
+|$+|This is like '$^', but prerequisites listed more than once are duplicated in the order they were listed in the makefile.|
+|$|The names of all the order-only prerequisites, with spaces between them.|
+
+```bash
+OBJS = main.o fx_s15_16.o
+CCFLAGS = -Wall -g -pg
+main: $(OBJS)
+        cc $(OBJS) $(CCFLAGS) -o $@
+main.o: main.c fx_head.h fx_s15_16.h
+        cc -c $(CCFLAGS) $<
+fx_s15_16.o: fx_s15_16.c fx_s15_16.h
+        cc -c $(CCFLAGS) $<
+clean:
+        rm main $(OBJS)
+```
+
+```bash
+$ make
+cc main.o fx_s15_16.o -Wall -g -pg -o main
+```
+
+```bash
+OBJS = main.o fx_s15_16.o
+CCFLAGS = -Wall -g -pg
+main: $(OBJS)
+        cc $(OBJS) $(CCFLAGS) -o $@
+.c.o:
+        cc -c $(CCFLAGS) $<
+clean:
+        rm main $(OBJS)
+```
+
+* dependency 제대로 작동안함
+
+* `$ gccmakedep main.c fx_s15_16.c` : gcc make dependency
+
+```bash
+OBJS = main.o fx_s15_16.o
+CCFLAGS = -Wall -g -pg
+main: $(OBJS)
+        cc $(OBJS) $(CCFLAGS) -o $@
+.c.o:
+        cc -c $(CCFLAGS) $<
+clean:
+        rm main $(OBJS)
+# DO NOT DELETE
+main.o: main.c /usr/include/stdc-predef.h fx_s15_16.h fx_head.h \
+ /usr/include/math.h \
+ /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
+ /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/bits/long-double.h \
+ # 생략...
+fx_s15_16.o: fx_s15_16.c /usr/include/stdc-predef.h fx_head.h fx_s15_16.h \
+ /usr/include/math.h \
+ /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
+ /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/bits/long-double.h \
+ # 생략...
+ /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h \
+ /usr/include/x86_64-linux-gnu/bits/mathcalls.h
+```
+
+* `gccmakedep main.c fx_s15_16.c` 실행시 자동으로 만들어짐
+
+```bash
+$ touch *.h
+$ make
+cc -c -Wall -g -pg main.c
+cc -c -Wall -g -pg fx_s15_16.c
+cc main.o fx_s15_16.o -Wall -g -pg -o main
+```
+
+```bash
+OBJS = main.o fx_s15_16.o
+#CCFLAGS = -Wall -g -pg
+CCFLAGS = -Wall -O3
+main: $(OBJS)
+        cc $(OBJS) $(CCFLAGS) -o $@
+.c.o:
+        cc -c $(CCFLAGS) $<
+debug: main.c fx_s15_16.c fx_s15_16.h fx_head.h
+        cc -o main_for_debug -pg -g main.c fx_s15_16.c
+clean:
+        rm main $(OBJS)
+# DO NOT DELETE - gccmakedep main.c fx_s15_16.c
+
+$ make debug
+cc -o main_for_debug -pg -g main.c fx_s15_16.c
+```
+
+### `CMake`  
+
+```bash
+$ cat CMakeLists.txt
+project(main)
+ADD_EXECUTABLE(main main.c fx_s15_16.c)
+
+$ cmake .
+$ make          # main 생성됨
+Scanning dependencies of target main
+[ 33%] Building C object CMakeFiles/main.dir/main.c.o
+[ 66%] Building C object CMakeFiles/main.dir/fx_s15_16.c.o
+[100%] Linking C executable main
+[100%] Built target main
+```
+
+* CMakeFiles, cmake_install.cmake, CMakeLists.txt, makefile도 생성됨
+
+
 
 ***
