@@ -20,6 +20,7 @@
 10. [ Lecture 10 ](#lecture-10)
 11. [ Lecture 11 ](#lecture-11)
 12. [ Lecture 12 ](#lecture-12)
+13. [ Lecture 13 ](#lecture-13)
 
 ***
 
@@ -4182,7 +4183,6 @@ clean:
 |`$?`|The names of all the prerequisites that are newer than the target, with spaces between them.|
 |`$^`|The names of all the prerequisites, with spaces between them.|
 |`$+`|This is like '$^', but prerequisites listed more than once are duplicated in the order they were listed in the makefile.|
-|`$|`|The names of all the order-only prerequisites, with spaces between them.|
 |`'$(@D)'`|The directory part of the file name of the target, with the trailing slash removed.|
 |`'$(@F)'`|The file-within-directory part of the file name of the target.|
 |`'$(*D)''$(*F)'`|The directory part and the file-within-directory part of the stem; dir and foo in this example.|
@@ -4193,7 +4193,7 @@ clean:
 
 * CCFLAGS 를 사용한 Makefile  
 
-```makefile
+```Makefile
 OBJS = main.o fx_s15_16.o
 CCFLAGS = -Wall -g -pg
 main: $(OBJS)
@@ -4269,15 +4269,11 @@ main.o: main.c /usr/include/stdc-predef.h fx_s15_16.h fx_head.h \
  /usr/include/math.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
- /usr/include/x86_64-linux-gnu/bits/wordsize.h \
- /usr/include/x86_64-linux-gnu/bits/long-double.h \
  # 생략...
 fx_s15_16.o: fx_s15_16.c /usr/include/stdc-predef.h fx_head.h fx_s15_16.h \
  /usr/include/math.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
- /usr/include/x86_64-linux-gnu/bits/wordsize.h \
- /usr/include/x86_64-linux-gnu/bits/long-double.h \
  # 생략...
  /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h \
  /usr/include/x86_64-linux-gnu/bits/mathcalls.h
@@ -4329,7 +4325,7 @@ ADD_EXECUTABLE(main main.c fx_s15_16.c)
 
 * cmake 파일을 만들기 위해 CMakeLists.txt 파일에 위와 같이 작성하였다.
 
-```cmake
+```bash
 $ cmake .
 $ make          # main 생성됨
 Scanning dependencies of target main
@@ -4370,5 +4366,408 @@ SET ( CMAKE_C_COMPILER "gcc" )
 ```
 
 //2시간 35분
+
+***
+
+
+## Lecture 13  
+
+##### - 2022. 01. 25  
+
+### `project`  
+
+* 성능 - 곱셈, 나눗셈에서 측정
+    * 그냥, 64bit, 32bit 조건부 컴파일 시 성능 비교
+
+* 나의 max 값 : (2 ^ 63 -1)/ (2 ^ 31)
+
+* 나의 min 값 : (2 ^ 63)/ (2 ^ 31)
+
+### `System call & Thread`  
+
+* CPU code - Intel i7-980x  
+
+core 6개 = CPU가 6개 있는 것과 마찬가지  
+
+job, memory, processor == core  
+
+* Context Switching
+
+```bash
+$ ps
+  PID TTY          TIME CMD
+ 5656 pts/12   00:00:00 ps
+28047 pts/12   00:00:00 bash
+```
+
+* process의 3가지 상태 - run, stop(메모리에 올라가있긴 한데 실행 중은 아님), kill/idle
+    * run = fg(foreground), bg(background)
+
+* vi 에디터 열면 - vi process 실행 중이다. `run` -> vi process 를 stop 상태로 바꾸려면 ctrl + z `stop`  
+
+```bash
+$ vi test.c
+
+[1]+ Stopped            vi test.c
+$ ps
+  PID TTY          TIME CMD
+ 6219 pts/12   00:00:00 vi
+ 5656 pts/12   00:00:00 ps
+28047 pts/12   00:00:00 bash
+```
+
+PPID = parent process  
+
+* ps -al : 모든 process 보여줌
+
+* fg : stopped 된 process 가 다시 running 상태로 돌아간다.
+
+* sleep  
+
+```bash
+$ sleep 3 ; echo "wake up 3sec"
+$ (sleep 3 ; echo "wake up 3sec") &
+$ ps -l
+$ jobs
+$ fg %3
+$ bg
+```
+
+* 두번째는 명령이 background로 작업한다.
+
+**Q**) vi 에디터는 왜 background로 돌지 못할까?  
+> stdout에 여러 ~~ 로 출력 되긴 됨  
+vi 에디터는 stdin으로 입력을 받는데, background로 돌리고 bash 작업시 bash도 stdin으로 입력을 받기 때문에 입력이 vi 에디터로 들어가는지, bash로 들어가는지 모르고 알 수 없다.  
+stdin 을 받는 작업은 background로 돌 수 없다.  
+stdin은 무조건 foreground 작업으로만 간다.  
+background 작업에서 stdin을 받고자 한다면 stdin을 받고자 하는 곳에서 stop된다.  
+
+* scanf를 background에서 작업하고 싶다면 stdin으로 받지 않고, redirection으로 입력 받으면 가능하다.
+
+```bash
+$ ./bin             # scanf를 사용하는 프로그램
+$ ./bin <<< 9988 &
+```
+
+```bash
+$ jobs
+[3]+ Running            sleep 3600 &
+$ kill %3
+[3]+ Terminated         sleep 3600
+```
+
+* foreground 작업 죽이는 방법 = ctrl + c
+
+* CPU 개수 보는 방법 : $ cat /proc/cpuinfo
+
+* vi 에디터에서
+
+* :!ls
+
+* :r output.txt
+
+* :r!ls = ls 명령의 결과를 읽어옴
+
+* :w -> :!cc test.c -> :!./a.out
+
+* :w -> :!cc test.c ; ./a.out
+
+### `system - system call`  
+
+```c
+#include <stdlib.h>
+int system(const char *command);
+execl()
+
+int execl(const char *command)
+```
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+        printf("Hello\n");
+        system("ls -li");)
+}
+```
+
+```bash
+pcc001@git:~/pcc/lec13$ !cc
+cc test.c
+pcc001@git:~/pcc/lec13$ ./a.out
+Hello
+total 20
+31327659 -rwxr-xr-x 1 pcc001 pcc 8344  1월 25 15:17 a.out
+31327640 -rw-r--r-- 1 pcc001 pcc    6  1월 25 15:10 output.txt
+31327673 -rw-r--r-- 1 pcc001 pcc   94  1월 25 15:17 test.c
+```
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+        printf("System Call: %d\n", system("ls -li"));
+}
+```
+
+```bash
+$ ./a.out
+total 20
+31327658 -rwxr-xr-x 1 pcc001 pcc 8344  1월 25 15:19 a.out
+31327640 -rw-r--r-- 1 pcc001 pcc    6  1월 25 15:10 output.txt
+31327679 -rw-r--r-- 1 pcc001 pcc  103  1월 25 15:19 test.c
+System Call: 0
+
+$ ./a.out               # system(ls -li zzz) 
+ls: cannot access 'zzz': No such file or directory
+System Call: 512
+
+# test.c 에 return 100 추가
+$ echo $?
+100
+```
+
+* return 값 : 0
+
+```bash
+$ ls -l zzz test.c
+ls: cannot access 'zzz': No such file or directory
+-rw-r--r-- 1 pcc001 pcc 120  1월 25 15:20 test.c
+
+$ ls -l zzz test.c > lsout.txt
+ls: cannot access 'zzz': No such file or directory
+$ cat lsout.txt
+-rw-r--r-- 1 pcc001 pcc 120  1월 25 15:20 test.c
+
+$ ls -l zzz test.c 2> lserr.txt
+-rw-r--r-- 1 pcc001 pcc 120  1월 25 15:20 test.c
+$ cat lserr.txt
+ls: cannot access 'zzz': No such file or directory
+
+$ ls -l zzz test.c 1> lsout.txt 2> lserr.txt
+
+$ ls -l zzz test.c &> lsoutierr.txt
+$ cat lsoutierr.txt
+ls: cannot access 'zzz': No such file or directory
+-rw-r--r-- 1 pcc001 pcc 120  1월 25 15:20 test.c
+```
+
+* popen = pipe open 함수
+
+```bash
+$ sh -c "ls -li"
+$ ls -li
+```
+
+### `fork`  
+
+```c
+#include <sys/types.h>
+#include <unistd.h>
+ pid_t fork(void);
+
+#define _GNU_SOURCE
+#include <sched.h>
+long clone(unsigned long flags, void *child_stack, int *ptid, int *ctid, unsigned long newtls);
+```
+
+* a.out 실행하다가 fork를 만나면 다른 메모리에 a.out가 똑같이 복사가 되어 실행된다.  
+
+* fork 시 pid type (process id)가 다르게 생성된다.
+    * 이를 통해 process id 에 따라 다른 일을 수행하도록 할 수 있다.
+
+```c
+//forktest.c
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+int main()
+{
+        int a = 0;
+        pid_t pid ,pid2;
+        pid = fork();
+        //pid2 = fork();
+        for (int i = 0; i < 100; i++)
+        {
+                sleep(1);
+                printf("%d : %d : %d : \n", pid, a++, i);
+        }
+}
+```
+
+* slepp 이라고 하는 system call (library) 있다.
+    * :!man printf
+    * :!man 3 printf
+    * :!man sleep
+    * :!man 3 sleep
+        * #include <unistd.h>
+        * unsigned int sleep(unsigned int seconds);
+
+```bash
+PID 24310 : A=0 : i=0 :
+PID 0 : A=0 : i=0 :
+PID 24310 : A=1 : i=1 :
+PID 0 : A=1 : i=1 :
+PID 24310 : A=2 : i=2 :
+PID 0 : A=2 : i=2 :
+PID 24310 : A=3 : i=3 :
+PID 0 : A=3 : i=3 :
+PID 24310 : A=4 : i=4 :
+PID 0 : A=4 : i=4 :
+PID 24310 : A=5 : i=5 :
+PID 0 : A=5 : i=5 :
+
+$ a.out &
+$ ps
+  PID TTY          TIME CMD
+24514 pts/12   00:00:00 a.out
+24515 pts/12   00:00:00 a.out
+24562 pts/12   00:00:00 ps
+28047 pts/12   00:00:00 bash
+```
+
+```c
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+int main()
+{
+        int a = 0;
+        pid_t pid ,pid2;
+        pid = fork();
+        //pid2 = fork();
+        for (int i = 0; i < 100; i++)
+        {
+                sleep(1);
+                if (pid == 0)
+                        printf("PID %d : A=%d : i=%d : \n", pid, a++, i);
+                else
+                        printf("PID %d : A=%d : i=%d : \n", pid, a--, i);
+        }
+}
+```
+
+```bash
+PID 25453 : A=0 : i=0 :
+PID 0 : A=0 : i=0 :
+PID 25453 : A=-1 : i=1 :
+PID 0 : A=1 : i=1 :
+PID 25453 : A=-2 : i=2 :
+PID 0 : A=2 : i=2 :
+PID 25453 : A=-3 : i=3 :
+PID 0 : A=3 : i=3 :
+PID 25453 : A=-4 : i=4 :
+PID 0 : A=4 : i=4 :
+PID 25453 : A=-5 : i=5 :
+PID 0 : A=5 : i=5 :
+```
+
+```c
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+int main()
+{
+	int a = 0;
+	pid_t pid ,pid2;
+       	pid = fork();
+	pid2 = fork();
+	for (int i = 0; i < 100; i++)
+	{
+		sleep(1);
+		printf("PID %d : PID2 %d : A=%d : i=%d : \n", pid, pid2, a++, i);
+	}
+}
+```
+
+* a.out & 실행시
+
+```bash
+  PID TTY          TIME CMD
+24668 pts/4    00:00:00 bash
+26223 pts/4    00:00:00 a.out
+26224 pts/4    00:00:00 a.out
+26225 pts/4    00:00:00 a.out
+26226 pts/4    00:00:00 a.out
+26243 pts/4    00:00:00 ps
+```
+
+### `Thread`  
+
+* core vs Thread
+
+* POSIX == UNIX / Linux
+
+### `pthread.h API`  
+
+```c
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);
+//생성 함수 start_routine을 실행
+
+void pthread_exit(void *retval);
+//retval must not in stack
+//main thread exit with this, other threads are still running
+
+int pthread_join(pthread_t thread, void **retval);
+```
+
+```c
+void pthread_cancel(pthread_t thread);
+//Send cancellation request to thread
+
+pthread_t pthread_self(void);
+//return ID of the calling thread
+
+int pthread_equal(pthread_t t1, pthread_t t2);
+//compare thread IDs
+```
+
+```c
+//threadtest.c - pthread 사용
+#include <pthread.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+
+int bbb = 0;
+
+void fn_s()
+{
+    static int a = 0;
+    printf("== %d %d ==",a++, bbb++);
+}
+
+
+void *run (void *arg)
+{
+    printf("Hello world of POSXI threads.%d\n", (int) pthread_self() );
+    for (int i = 0; i < 100; i++)
+        {
+                usleep(1000000);
+                fn_s();
+        }
+    return 0;
+
+}
+
+int main()
+{
+        pthread_t thread1;
+        int result1;
+        pthread_create(&thread1, NULL, run, NULL );
+        pthread_join(thread1, (void **) &result1);
+        printf("Thread return %d at the end\n", result1);
+}
+```
+
+* cc threadtest.c -lpthread
 
 ***
