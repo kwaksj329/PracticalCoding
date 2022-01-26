@@ -21,6 +21,7 @@
 11. [ Lecture 11 ](#lecture-11)
 12. [ Lecture 12 ](#lecture-12)
 13. [ Lecture 13 ](#lecture-13)
+14. [ Lecture 14 ](#lecture-14)
 
 ***
 
@@ -4376,12 +4377,33 @@ SET ( CMAKE_C_COMPILER "gcc" )
 
 ### `project`  
 
-* 성능 - 곱셈, 나눗셈에서 측정
+* long long 으로 만드는 사람은 특별하게 32bit computing을 고려하지 않아도 된다.
+    * 그래도 32bit computer에서 돌아갈 수 있도록 해야함
+
+* 성능 - 곱셈, 나눗셈에서 측정, 정밀도 - overflow (grpof)
     * 그냥, 64bit, 32bit 조건부 컴파일 시 성능 비교
+    * 덧셈, 뺄셈, 곱셈, 나눗셈 - 4개씩 존재
+    * -max ~ +max = 보고서에 넣어야함
+    * (1) (-max * -max ) ~ (+max * +max)
+    * (2) (0에서 감소하면서 * -max ) ~ (-max에서 0까지 증가하면서 * -max) 
+
+* (a * b) >> 16 = 오버플로우 발생  
+
+* (a >> 8) * (b >> 8) = 오버플로우는 덜 생기지만 a, b가 작은 숫자일 때 뒤 숫자들이 잘려서 0이 되어버림
 
 * 나의 max 값 : (2 ^ 63 -1)/ (2 ^ 31)
 
 * 나의 min 값 : (2 ^ 63)/ (2 ^ 31)
+
+* resolution 값도 적어야함
+
+* fx_head.h 고칠 경우에는 코멘트 남기기
+
+* 정밀도 성능 분석 시 실험 환경 기록해야함 - CPU 정보, 환경(리눅스 20.04)
+
+* 실행파일, .o 파일은 깃에 올리지 않기
+
+//20분
 
 ### `System call & Thread`  
 
@@ -4769,5 +4791,209 @@ int main()
 ```
 
 * cc threadtest.c -lpthread
+
+***
+
+## Lecture 14  
+
+##### - 2022. 01. 26   
+
+* Unix == linux
+
+* digital -> pdp 11 -> c언어 등장
+
+* Unix = AT&T
+
+```c
+#include <pthread.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+int bbb = 0;
+
+void fn_s()
+    printf("== %d %d ==",a++, bbb++);
+}
+
+
+void *run (void *arg)
+{
+    printf("Hello world of POSIX threads.%d\n", (int)(0) );
+    for (int i = 0; i < 100; i++)
+        {
+                sleep(1);
+                fn_s();
+        }
+    return 0;
+
+}
+
+int main()
+{
+        //pthread_t thread1;
+        int result1;
+        //pthread_create(&thread1, NULL, run, NULL );
+        run((void *) 0);
+        //pthread_join(thread1, (void **) &result1);
+        printf("Thread return %d at the end\n", result1);
+}
+```
+
+```bash
+$ a.out
+Hello world of POSIX threads.0
+== 0 0 ==== 1 1 ==== 2 2 ==== 3 3 ==== 4 4 ==== 5 5 ==== 6 6 ==== 7 7 ==== 8 8 ==== 9 9 ==== 10 10 ==== 11 11 ==== 12 12 ==== 13 13 ==== 14 14 ==== 15 15 ==== 16 16 ==== 17 17 ==== 18 18 ==== 19 19 ==== 20 20 ==== 21 21 ==== 22 22 ==== 23 23 ==== 24 24 ==== 25 25 ==== 26 26 ==== 27 27 ==== 28 28 ==== 29 29 ==== 30 30 ==== 31 31 ==== 32 32 ==== 33 33 ==== 34 34 ==== 35 35 ==== 36 36 ==== 37 37 ==== 38 38 ==== 39 39 ==== 40 40 ==== 41 41 ==== 42 42 ==== 43 43 ==== 44 44 ==== 45 45 ==== 46 46 ==== 47 47 ==== 48 48 ==== 49 49 ==== 50 50 ==== 51 51 ==== 52 52 ==== 53 53 ==== 54 54 ==== 55 55 ==== 56 56 ==== 57 57 ==== 58 58 ==== 59 59 ==== 60 60 ==== 61 61 ==== 62 62 ==== 63 63 ==== 64 64 ==== 65 65 ==== 66 66 ==== 67 67 ==== 68 68 ==== 69 69 ==== 70 70 ==== 71 71 ==== 72 72 ==== 73 73 ==== 74 74 ==== 75 75 ==== 76 76 ==== 77 77 ==== 78 78 ==== 79 79 ==== 80 80 ==== 81 81 ==== 82 82 ==== 83 83 ==== 84 84 ==== 85 85 ==== 86 86 ==== 87 87 ==== 88 88 ==== 89 89 ==== 90 90 ==== 91 91 ==== 92 92 ==== 93 93 ==== 94 94 ==== 95 95 ==== 96 96 ==== 97 97 ==== 98 98 ==== 99 99 ==Thread return 0 at the end
+```
+
+```c
+printf("== %d %d ==",a++, bbb++);
+printf("== %d %d ==\n",a++, bbb++);
+```
+
+* \n 이 있으면 1초마다 printing
+* 없으면 100초 후 한꺼번에 printing
+
+1. CPU
+2. Memory
+3. Storage
+4. I/O
+
+* buffer
+
+1. buffer full mode
+2. line by line mode
+3. char mode
+
+### `첫번째 방법`
+
+```bash
+$ man stdbuf
+$ stdbuf --out=0 a.out          #no buffer - 1초마다 나옴
+```
+
+### `두번째 - program 내에서 control`
+
+```c
+void fn_s()
+{
+    char bufff[10];
+    static int a = 0;
+    setvbuf(stdout, bufff,  _IOFBF,  10);
+    printf("== %d %d ==",a++, bbb++);
+}
+```
+
+```bash
+$ a.out
+Hello world of POSIX threads.0
+== <�0 ==== <�1 ==== <�2 ==== <�3 ==== <�4 ==== <�5 ==== <�6 ==== <�7 ==== <�8 ==== 9 9 ==Thread return 0 at the end
+```
+
+```c
+//main에 추가
+int main()
+{
+        char bufff[10];
+        setvbuf(stdout, bufff,  _IOFBF,  10);
+```
+
+```bash
+pcc001@git:~/pcc/lec13$ a.out
+Hello world of POSIX threads.0
+== 0 0 ==== 1 1 ==== 2 2 ==== 3 3 ==== 4 4 ==== 5 5 ==== 6 6 ==== 7 7 ==== 8 8 ==== 9 9 ==Thread return 750253696 at the end
+```
+
+* line by line
+
+```bash
+$ stdbuf --output=L a.out
+```
+
+* fflush
+
+```c
+void fn_s()
+{
+    static int a = 0;
+    printf("== %d %d ==",a++, bbb++);
+    fflush();
+}
+```
+
+```c
+//prtest.c
+#include <stdio.h>
+
+int main()
+{
+	char a;
+	short b;
+	int c;
+	long long d;
+
+	scanf("%d %d %d %d", &a, &b, &c, &d);
+	printf("%d %d %d %d\n", a, b, c, d);
+}
+```
+
+```c
+#include <stdio.h>
+
+int main()
+{
+        char a;
+        short b;
+        int c;
+        long long d;
+
+        scanf("%hhd %hd %d %lld", &a, &b, &c, &d);
+        printf("%hhd %hd %d %lld\n", a, b, c, d);
+}
+```
+
+```c
+#include <pthread.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+
+int bbb = 0;
+
+void fn_s()
+{
+    static int a = 0;
+    printf("== %d %d ==\n",a++, bbb++);
+}
+
+
+void *run (void *arg)
+{
+    printf("Hello world of POSIX threads.%d\n", (int)(0) );
+    for (int i = 0; i < 100; i++)
+        {
+                usleep(10000);
+                fn_s();
+        }
+    return 0;
+
+}
+
+int main()
+{
+        pthread_t thread1;
+        int result1;
+
+        pthread_create(&thread1, NULL, run, NULL );
+        run((void *) 0);
+        pthread_join(thread1, (void **) &result1);
+        printf("Thread return %d at the end\n", result1);
+}
+```
+
+* cc threadtest.c -lpthread
+
+* Asynchronous execution
 
 ***
