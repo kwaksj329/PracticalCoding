@@ -611,7 +611,7 @@ int main()
 
 ## Lecture 3  
 
-##### - 2022. 01. 06 [ Advanced C 언어 (2) 현장의 코딩 규칙 ]  
+##### - 2022. 01. 06  
 
 ### `linux command`
 
@@ -808,7 +808,7 @@ $ git push
 
 ## Lecture 4  
 
-##### - 2022. 01. 10   [ Data Type ]
+##### - 2022. 01. 10  
 
 ### `pipe`  
 
@@ -4053,7 +4053,7 @@ tab	   Execute if dependency changes
 
 * Macro  
 
-```makefile
+```bash
 OBJS = main.o data.o
 $(OBJS)
 ```
@@ -4105,7 +4105,7 @@ make: 'main' is up to date.
 
 * touch: change file timestamps - c파일이나 h파일 등을 수정했을 때는 make가 되지만, Makefile을 수정해도 다시 make, 컴파일하지 않는다.
 
-```makefile
+```bash
 main: main.c fx_s15_16.c fx_head.h fx_s15_16.h
         cc -g main.c fx_s15_16.c -o main
 clean:
@@ -4120,7 +4120,7 @@ clean:
 
 ### `Makefile (2)`  
 
-```makefile
+```bash
 main: main.o fx_s15_16.o
 	cc main.o fx_s15_16.o -o main
 main.o: main.c fx_head.h fx_s15_16.h
@@ -4156,7 +4156,7 @@ cc main.o fx_s15_16.o -o main
 
 ### `Makefile (3)`  
 
-```makefile
+```bash
 OBJS = main.o fx_s15_16.o
 main: $(OBJS)
         cc $(OBJS) -o $@
@@ -4194,7 +4194,7 @@ clean:
 
 * CCFLAGS 를 사용한 Makefile  
 
-```Makefile
+```bash
 OBJS = main.o fx_s15_16.o
 CCFLAGS = -Wall -g -pg
 main: $(OBJS)
@@ -4230,7 +4230,7 @@ cc main.o fx_s15_16.o -Wall -g -pg -o main
 
 ### `Makefile (4)`  
 
-```makefile
+```bash
 OBJS = main.o fx_s15_16.o
 CCFLAGS = -Wall -g -pg
 main: $(OBJS)
@@ -4256,7 +4256,7 @@ make: 'main' is up to date.         # 파일을 수정해도 make를 새로하�
 
 * 따라서 `$ gccmakedep main.c fx_s15_16.c` 실행 : gcc make dependency
 
-```makefile
+```bash
 OBJS = main.o fx_s15_16.o
 CCFLAGS = -Wall -g -pg
 main: $(OBJS)
@@ -4292,7 +4292,7 @@ cc main.o fx_s15_16.o -Wall -g -pg -o main
 
 * gccmakedep main.c fx_s15_16.c 실행 후에는 실행 전과는 다르게 dependency가 있는 파일을 수정하면 새로 컴파일하는 모습을 볼 수 있다.
 
-```makefile
+```bash
 OBJS = main.o fx_s15_16.o
 CCFLAGS = -Wall -g -pg
 #CCFLAGS = -Wall -O3
@@ -4403,8 +4403,6 @@ SET ( CMAKE_C_COMPILER "gcc" )
 
 * 실행파일, .o 파일은 깃에 올리지 않기
 
-//20분
-
 ### `System call & Thread`  
 
 * CPU code  
@@ -4426,6 +4424,9 @@ SET ( CMAKE_C_COMPILER "gcc" )
 
 **Q**) 6 core를 가진 컴퓨터에서 process 2000~3000를 처리하는 방법은?  
 > CPU scheduling - 여러 프로세스들을 끊임없이 작업 중일 수 있도록 프로세스의 배분 및 교환을 해주어 처리한다. 
+
+**Q**) Core가 6개면 어떤 프로그램 하나를 6개의 core에서 나누어서 실행할 수 있을까?
+> job 하나는 하나의 코어에서 실행되기 때문에 가능하지 않다.
 
 * Context Switching
     * 하나의 프로세스가 CPU를 사용 중인 상태에서 다른 프로세스가 CPU를 사용하도록 하기 위해, 이전의 프로세스의 상태(문맥)를 보관하고 새로운 프로세스의 상태를 올린다.
@@ -4477,7 +4478,7 @@ $ (sleep 3 ; echo "wake up 3sec") &
 # 3초 후에 wake up 3sec 출력 실행 명령이 background로 실행된다.
 
 $ sleep 100 &
-$ slee 50 &
+$ sleep 50 &
 $ ps -l                 # background로 실행중인 sleep process도 보여준다.
 F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
 0 S  4039  7935 22016  0  80   0 -  2190 hrtime pts/0    00:00:00 sleep
@@ -4857,7 +4858,6 @@ int main(int argc, const char *argv[])
 ```
 
 * pthread.h (POSIX)  
-    * 우리가 사용하는 
 
 ```c
 #include <pthread.h>
@@ -4905,6 +4905,8 @@ pthread_t pthread_self(void);
 int pthread_equal(pthread_t t1, pthread_t t2);
 //두 스레드가 같은 스레드인지 id를 비교한다.
 ```
+
+### `pthread 사용 프로그램`  
 
 ```c
 //threadtest.c - pthread 사용
@@ -4959,11 +4961,24 @@ int main()
 
 ##### - 2022. 01. 26   
 
-* Unix == linux
+### `Unix, linux 역사`  
 
 * digital -> pdp 11 -> c언어 등장
 
-* Unix = AT&T
+* 이 당시 사용하던 OS : VMS, unix
+
+* Unix = AT&T 가 개발 (Bell lab)
+
+* Unix 이후 개발된 OS, unix 계열 OS
+    * bsd -> ios 
+    * XINU
+    * GNU (GNU is Not Unix)
+    * linux (리누스 토발즈가 개발)
+
+* 이러한 여러 unix 계열 OS가 각각 다르게 개발됨 -> 표준화를 위해 POSIX 등장
+    * IEEE -> POSIX로 표준화 함
+
+### `sleep 사용 프로그램`  
 
 ```c
 #include <pthread.h>
@@ -4974,6 +4989,7 @@ int main()
 int bbb = 0;
 
 void fn_s()
+    static int a = 0;
     printf("== %d %d ==",a++, bbb++);
 }
 
@@ -4992,14 +5008,15 @@ void *run (void *arg)
 
 int main()
 {
-        //pthread_t thread1;
-        int result1;
-        //pthread_create(&thread1, NULL, run, NULL );
-        run((void *) 0);
-        //pthread_join(thread1, (void **) &result1);
-        printf("Thread return %d at the end\n", result1);
+    int result1;
+    run((void *) 0);
+    printf("Thread return %d at the end\n", result1);
 }
 ```
+
+* 실행 시 Hello world of POSIX threads.0 만 출력되고 실행이 안되는 문제 발생
+
+**이는 실행이 안되는 것이 아니라, 터미널에 출력되지 않을 뿐 100초 뒤에 아래와 같은 출력 결과를 얻을 수 있었다.**
 
 ```bash
 $ a.out
@@ -5007,33 +5024,47 @@ Hello world of POSIX threads.0
 == 0 0 ==== 1 1 ==== 2 2 ==== 3 3 ==== 4 4 ==== 5 5 ==== 6 6 ==== 7 7 ==== 8 8 ==== 9 9 ==== 10 10 ==== 11 11 ==== 12 12 ==== 13 13 ==== 14 14 ==== 15 15 ==== 16 16 ==== 17 17 ==== 18 18 ==== 19 19 ==== 20 20 ==== 21 21 ==== 22 22 ==== 23 23 ==== 24 24 ==== 25 25 ==== 26 26 ==== 27 27 ==== 28 28 ==== 29 29 ==== 30 30 ==== 31 31 ==== 32 32 ==== 33 33 ==== 34 34 ==== 35 35 ==== 36 36 ==== 37 37 ==== 38 38 ==== 39 39 ==== 40 40 ==== 41 41 ==== 42 42 ==== 43 43 ==== 44 44 ==== 45 45 ==== 46 46 ==== 47 47 ==== 48 48 ==== 49 49 ==== 50 50 ==== 51 51 ==== 52 52 ==== 53 53 ==== 54 54 ==== 55 55 ==== 56 56 ==== 57 57 ==== 58 58 ==== 59 59 ==== 60 60 ==== 61 61 ==== 62 62 ==== 63 63 ==== 64 64 ==== 65 65 ==== 66 66 ==== 67 67 ==== 68 68 ==== 69 69 ==== 70 70 ==== 71 71 ==== 72 72 ==== 73 73 ==== 74 74 ==== 75 75 ==== 76 76 ==== 77 77 ==== 78 78 ==== 79 79 ==== 80 80 ==== 81 81 ==== 82 82 ==== 83 83 ==== 84 84 ==== 85 85 ==== 86 86 ==== 87 87 ==== 88 88 ==== 89 89 ==== 90 90 ==== 91 91 ==== 92 92 ==== 93 93 ==== 94 94 ==== 95 95 ==== 96 96 ==== 97 97 ==== 98 98 ==== 99 99 ==Thread return 0 at the end
 ```
 
+* 이를 해결하는 방법으로 아래 printf 코드와 같이 출력문 뒤에 \n을 추가하는 것이 있었다.
+
 ```c
 printf("== %d %d ==",a++, bbb++);
-printf("== %d %d ==\n",a++, bbb++);
+printf("== %d %d ==\n",a++, bbb++);        // \n 추가 후
 ```
 
-* \n 이 있으면 1초마다 printing
-* 없으면 100초 후 한꺼번에 printing
+* \n 이 있으면 1초마다 출력되며, 한줄씩 줄 바꿈이 일어났다.
+* \n이 없으면 100초 후 한꺼번에 출력되며, 줄바꿈이 일어나지 않았다.
 
-1. CPU
-2. Memory
-3. Storage
-4. I/O
+### `buffer`  
 
-* buffer
+1. CPU가 메모리에 있는 프로그램 실행해서 출력 장치인 terminal hello world를 출력하도록 하였다. (terminal은 character device이다.)
 
-1. buffer full mode
-2. line by line mode
-3. char mode
+2. 그런데 terminal에 character 글자 하나씩 출력하게 하면 CPU가 비효율적으로 사용된다.  
 
-### `첫번째 방법`
+3. CPU > Memory > Storage > I/O 순서대로 속도가 느려졌기 때문에 terminal이 한글자씩 출력하면 CPU는 그 동안 일을 하지 않고 놀게 되며 이 때문에 비효율적이다.  
+
+4. 따라서 CPU를 효율적으로 사용하기 위해 CPU보다는 느리지만 출력 장치보다는 빠른 메모리의 버퍼에 저장해둔다. (input buffer, output buffer, stdin, stdout, stderr)
+
+5. 버퍼가 작동하는 원리에 3가지 모드가 있다. 
+    1. buffer full mode = 버퍼가 꽉 차면 buffer full signal을 보내고, 이때 버퍼 안의 내용을 가져간다.
+    2. line by line mode = \n을 만나면 한 줄이 들어갔다고 인식하고 한 줄씩 내보낸다.
+    3. character by character mode = 한 글자씩 가져간다. (buffer size 0/1, zero 버퍼와 같다.)
+
+**우리 시스템의 default mode는 line by line mode이다.**  
+
+따라서 lec14의 맨 위 코드를 실행했을 때 바로 출력되지 않았지만 \n을 추가한 코드는 1초마다 바로 출력되었던 이유도 이 시스템이 기본으로 line by line mode를 따르기 때문에 \n을 만났을 때 터미널에 출력하였다.  
+
+### `첫 번째 방법 - 명령어 stdbuf`
 
 ```bash
-$ man stdbuf
+$ man stdbuf                    # 표준 버퍼
 $ stdbuf --out=0 a.out          #no buffer - 1초마다 나옴
 ```
 
-### `두번째 - program 내에서 control`
+* buffer size를 0으로 만들어 no buffer 상태에서 a.out를 실행한다.  
+
+* CPU 성능은 비효율적이지만 결과가 바로 출력된다.
+
+### `두 번째 - program 내에서 buffer control`
 
 ```c
 void fn_s()
@@ -5041,15 +5072,26 @@ void fn_s()
     char bufff[10];
     static int a = 0;
     setvbuf(stdout, bufff,  _IOFBF,  10);
+    //출력 버퍼의 크기를 10으로 설정s
     printf("== %d %d ==",a++, bbb++);
 }
 ```
+
+* _IONBF : no buffered
+* _IOLBF : line buffered
+* _IOFBF : fully buffered
+
+* setvbuf 함수를 통해 출력 버퍼를 fully buffered, 크기를 10바이트로 설정하였다.
 
 ```bash
 $ a.out
 Hello world of POSIX threads.0
 == <�0 ==== <�1 ==== <�2 ==== <�3 ==== <�4 ==== <�5 ==== <�6 ==== <�7 ==== <�8 ==== 9 9 ==Thread return 0 at the end
 ```
+
+* 글자가 깨지긴 하지만 출력이 바로바로 나온다.  
+
+* _IONBF로 no buffer를 사용하면 출력이 바로바로 나온다.
 
 ```c
 //main에 추가
@@ -5059,19 +5101,31 @@ int main()
         setvbuf(stdout, bufff,  _IOFBF,  10);
 ```
 
+* 위 코드에서 for 루프에서 fn_s() 함수가 호출될 때마다 setvbuf 하지말고 main에서 한번만 버퍼를 컨트롤 하도록 수정하였다.
+
 ```bash
-pcc001@git:~/pcc/lec13$ a.out
+$ a.out
 Hello world of POSIX threads.0
 == 0 0 ==== 1 1 ==== 2 2 ==== 3 3 ==== 4 4 ==== 5 5 ==== 6 6 ==== 7 7 ==== 8 8 ==== 9 9 ==Thread return 750253696 at the end
 ```
 
-* line by line
+* setvbuf를 통해 바로바로 출력되도록 버퍼 컨트롤 할 수 있다!
+
+### `line by line`  
 
 ```bash
 $ stdbuf --output=L a.out
 ```
 
-* fflush
+* L 옵션으로 line by line mode로 변경하여 a.out를 실행하였다.
+
+* 현재 a.out에는 setvbuf가 있지만 명령어로 실행할 때에는 line by line mode로 설정한 상황
+
+**실행 결과로 line by line mode가 적용되지 않고 a.out 프로그램 내의 setvbuf로 인해 1초마다 출력되었다.**
+
+### `fflush`  
+
+* fflush 함수 = flush a stream
 
 ```c
 void fn_s()
@@ -5081,6 +5135,10 @@ void fn_s()
     fflush();
 }
 ```
+
+* fflush 함수를 사용해서 a.out 실행 시 출력이 1초마다 나오는 것을 볼 수 있다. (강제로 flush)
+
+### `scanf & printf warning`  
 
 ```c
 //prtest.c
@@ -5098,6 +5156,28 @@ int main()
 }
 ```
 
+* 4개의 변수 모두 자료형이 다르지만 scanf 와 printf 함수에서 %d로 입력받고 출력하였다.
+
+* 컴파일 시 warning 발생
+
+```bash
+# 위 코드를 컴파일 하고 a.out 실행
+$ a.out
+255 2000 4000 5000
+-1 2000 4000 5000
+
+$ a.out
+8000 8000 8000 8000
+64 8000 8000 8000
+```
+
+* 예상과는 다르게 8000이 -가 아니라 64 값으로 이상한 값이 나왔다.
+
+* 경우에 따라서는 어떤 시스템에서 계속 문제를 일으키게 된다.  
+
+* warning을 살펴보면 char * 타입을 위해 %d 대신 %hhd를 사용하도록, short int * 타입을 위해 %d 대신 %hd를 사용하도록 등 맞지 않는 부분을 수정하도록 알려주고 있다.
+    * 아래 코드는 warning에 따라 수정한 코드이다.
+
 ```c
 #include <stdio.h>
 
@@ -5113,7 +5193,12 @@ int main()
 }
 ```
 
+* a.out 실행 시 자료형에 맞춰 masking 후 정상적으로 출력된 결과를 볼 수 있었다.
+
+### `pthread 테스트 코드`  
+
 ```c
+//threadtest.c
 #include <pthread.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -5125,13 +5210,14 @@ int bbb = 0;
 void fn_s()
 {
     static int a = 0;
-    printf("== %d %d ==\n",a++, bbb++);
+    printf("<== %d %d ==>",a++, bbb++);
+    fflush(stdout);
 }
 
 
 void *run (void *arg)
 {
-    printf("Hello world of POSIX threads.%d\n", (int)(0) );
+    printf("Hello world of POSIX threads.%d\n", (int) pthread_self() );
     for (int i = 0; i < 100; i++)
         {
                 usleep(10000);
@@ -5147,14 +5233,124 @@ int main()
         int result1;
 
         pthread_create(&thread1, NULL, run, NULL );
+        printf("JUST AFTER THR Create\n");
         run((void *) 0);
         pthread_join(thread1, (void **) &result1);
-        printf("Thread return %d at the end\n", result1);
+        printf("\nThread return %d at the end\n", result1);
 }
 ```
 
-* cc threadtest.c -lpthread
+* cc threadtest.c -lpthread (라이브러리 붙여 컴파일 해야함)
 
-* Asynchronous execution
+**Q**) JUST AFTER THR Create 출력은 aaa bbb 100개 출력 뒤에 나올까 아니면 바로 출력이 나올까?  
+> JUST AFTER THR Create이 바로 출력된다.  
+그리고 0부터 199까지 aaa와 bbb가 증가하여 출력되었다. -> Asynchronous execution  
+
+* fork 와 다른 점으로 global variable이나 static variable을 두 thread가 공유하고 있기 때문에 같이 증가시켜서 99까지 출력되는 것이 아니라 199까지 출력되는 결과를 얻을 수 있었다.
+
+### `Asynchronous execution`  
+
+* Asynchronous execution = 비동기적 실행
+
+* 동기적 실행은 하나가 끝나면 그 다음 것을 순차적으로 실행하는 것이다.
+
+* pthread_create가 아닌 상태에서 실행 시에는 run 함수가 끝날 때까지 기다리고 그 다음 것을 실행하였다. (동기적 실행)  
+
+* 하지만 비동기식 실행에서는 pthread_create에서 생성된 thread, 즉 새로운 process가 run을 실행하고 원래 실행 중이던 thread가 run이 끝날 때까지 기다리지 않고, 바로 JUST AFTER THR Create 를 출력하였다.  
+
+### `동기화 문제 발생 프로그램`  
+
+```c
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <pthread.h>
+
+int bbb = 0; 
+
+void fn_s()
+{
+    static int a = 0;
+    printf("<== %d %d ==>",a++, bbb++);
+    fflush(stdout);
+}
+
+
+void *run (void *arg)
+{
+    printf("Hello world of POSXI threads.%d\n", (int) pthread_self() );
+    for (int i = 0; i < 1000; i++)
+	{
+		//usleep(10000); 
+		fn_s(); 
+	}
+    return 0;
+
+}
+
+int main()
+{
+	pthread_t thread1;
+	pthread_t thread2;
+	pthread_t thread3;
+	int result1, result2, result3;
+
+	pthread_create(&thread1, NULL, run, NULL );
+	pthread_create(&thread2, NULL, run, NULL );
+	pthread_create(&thread3, NULL, run, NULL );
+	run((void *) 0); 
+	pthread_join(thread1, (void **) &result1);
+	pthread_join(thread2, (void **) &result2);
+	pthread_join(thread3, (void **) &result3);
+	printf("\nThread return %d at the end\n", result1);
+}
+```
+
+* usleep 사용 유무에 따른 차이점
+    * usleep 사용 X = 출력 마지막 aaa, bbb 값이 3976, 3977
+    * uslepp 사용 O = 출력 마지막 aaa, bbb 값이 3995, 3995
+
+* a++ 명령은 메모리의 a주소에서 a 값을 레지스터에 load 해오고 레지스터에 1을 더하고 a의 메모리 주소에 그 값을 저장한다.
+
+* thread를 여러개 create 했기 때문에 어떤 thread에서는 300 값을 읽고 1 더하는 중인데 301을 store 하기 전 다른 thread 도 같은 값을 읽고 1을 더해서 301을 store하고, 이후에 먼저 읽었던 thread에서도 301을 저장하는 경우가 발행한다. 그럼 302가 되어야하는데 301이 저장되는 `동기화` 문제가 발생한다.  
+    * 따라서 위 출력도 aaa와 bbb 값이 서로 다르거나 3999가 아닌 이유도 동기화 문제가 발생했기 때문이다.
+
+* 동기화 문제 해결 방법 : 내가 쓰는 자원을 다른 thread가 건들이지 않는 mutual exclusion을 사용한다.
+    * mutual exclusion == mutex
+
+### `Mutex`  
+
+```c
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+//example
+pthread_mutex_lock(&mutex);
+count++;
+pthread_mutex_unlock(&mutex);
+```
+
+* mutex를 사용하여 위 threadtest.c 코드를 수정하였다.
+
+```c
+void fn_s()
+{
+	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    static int a = 0; 
+    printf("<= %d %d =>",a, bbb);
+    pthread_mutex_lock(&mutex);
+	a++; bbb++;
+    pthread_mutex_unlock(&mutex);
+}
+```
+
+* aaa와 bbb의 값을 변경시키는 함수인 fn_s() 함수에서 mutex를 선언하였다.  
+
+* aaa와 bbb의 값을 변경시킬 때 다른 thread 가 이 자원을 동시에 건들이지 않도록 lock을 잡고 aaa와 bbb를 수정한 뒤 저장한 이후에 lock 을 해제해도록 하였다.
+
+**실행 결과 하나의 thread만 aaa와 bbb 자원의 lock을 잡고 수정하였기 때문에 마지막 출력 결과가 3999임을 확인할 수 있었다.**
+
+* (project) I/O 디바이스를 사용하는 것은 좋은 profiling이 아니다.
+    * 퍼포먼스를 정확하게 측정하기 위해 `a.out > /dev/null` 로 I/O를 날려서 실행하기
 
 ***
