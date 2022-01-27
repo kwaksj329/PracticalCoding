@@ -4407,13 +4407,32 @@ SET ( CMAKE_C_COMPILER "gcc" )
 
 ### `System call & Thread`  
 
-* CPU code - Intel i7-980x  
+* CPU code  
+    * ex) Intel i7-980x  
+    * cache = CPU 부속 메모리, 상당히 빠른 메모리이다.  
+    * core 6개 = CPU가 6개 있는 것과 마찬가지이다.  
+        * 3 core씩 같은 shared cache 사용
+    * 하나의 job은 하나의 core에서만 실행된다.  
+    * processor는 core와 같다.  
+    * job이 메모리로 올라가면서 process로 만들어진다. (process = 작업 단위)  
 
-core 6개 = CPU가 6개 있는 것과 마찬가지  
+* OS가 실행됨 -> OS의 process들이 실행됨 -> 사람들이 기계에 로그인을 하면 디바이스를 제어하는 tty (terminal) 프로세스 실행되고 -> 로그인에 성공하면 명령어를 실행할 수 있는 shell 이 실행된다.  
 
-job, memory, processor == core  
+* User process 실행 과정
+    * a.out는 실행 이전에 파일 형태로 storage에 저장되어 있다. -> 실행시 a.out를 메모리로 가져온다. ->  메모리에 가져온 작업을 process라고 한다.  
+
+* System process
+    * OS가 만든 process들은 system process라고 한다.
+
+**Q**) 6 core를 가진 컴퓨터에서 process 2000~3000를 처리하는 방법은?  
+> CPU scheduling - 여러 프로세스들을 끊임없이 작업 중일 수 있도록 프로세스의 배분 및 교환을 해주어 처리한다. 
 
 * Context Switching
+    * 하나의 프로세스가 CPU를 사용 중인 상태에서 다른 프로세스가 CPU를 사용하도록 하기 위해, 이전의 프로세스의 상태(문맥)를 보관하고 새로운 프로세스의 상태를 올린다.
+
+### `ps`  
+
+* 내가 실행하고 있는 process 를 보는 명령어
 
 ```bash
 $ ps
@@ -4422,111 +4441,126 @@ $ ps
 28047 pts/12   00:00:00 bash
 ```
 
-* process의 3가지 상태 - run, stop(메모리에 올라가있긴 한데 실행 중은 아님), kill/idle
-    * run = fg(foreground), bg(background)
+### `process의 3가지 상태`  
 
-* vi 에디터 열면 - vi process 실행 중이다. `run` -> vi process 를 stop 상태로 바꾸려면 ctrl + z `stop`  
+* run = fg(foreground), bg(background)
+* stop(메모리에 올라가있긴 한데 실행 중은 아님)
+* kill/idle
+
+* vi 에디터 열면 - vi process 실행 중 `run` -> vi process 를 stop 상태로 바꾸려면 ctrl + z `stop`  
 
 ```bash
-$ vi test.c
+$ vi test.c         # vi 에디터 실행 중 stop 시킴
 
 [1]+ Stopped            vi test.c
-$ ps
+$ ps                
   PID TTY          TIME CMD
  6219 pts/12   00:00:00 vi
  5656 pts/12   00:00:00 ps
 28047 pts/12   00:00:00 bash
 ```
 
-PPID = parent process  
+* PPID = parent process  
 
-* ps -al : 모든 process 보여줌
+* ps -al : 모든 process 정보 보여줌
 
 * fg : stopped 된 process 가 다시 running 상태로 돌아간다.
 
-* sleep  
+* sleep : 입력한 초만큼 sleep 한다.  
+
+### `어떤 작업을 background로 실행시키는 방법`  
 
 ```bash
 $ sleep 3 ; echo "wake up 3sec"
+# 3초 후에 wake up 3sec 출력 실행
 $ (sleep 3 ; echo "wake up 3sec") &
-$ ps -l
-$ jobs
-$ fg %3
-$ bg
+# 3초 후에 wake up 3sec 출력 실행 명령이 background로 실행된다.
+
+$ sleep 100 &
+$ slee 50 &
+$ ps -l                 # background로 실행중인 sleep process도 보여준다.
+F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
+0 S  4039  7935 22016  0  80   0 -  2190 hrtime pts/0    00:00:00 sleep
+0 S  4039  7964 22016  0  80   0 -  2190 httime pts/0    00:00:00 sleep
+0 R  4039  8023 22016  0  80   0 -  7551 -      pts/0    00:00:00 ps
+4 S  4039 22016 22015  0  80   0 -  7058 wait   pts/0    00:00:00 bash
+$ jobs                  # job id 볼 수 있는 명령어
+[1]  Running             sleep 100 &
+[2]- Done                sleep 50
+[3]+ Running             sleep 3600 &
+$ fg %3                 # 3번 job인 sleep 3600 & job을 foreground에서 실행시킨다.
+# foreground로 실행중인 작업을 stop 시키고 싶다면 -> 컨트롤 z
+$ bg                    # 가장 최근에 관련된 작업을 background에서 실행시킨다.
+$ kill %3               # 실행중인 작업을 kill 시킨다. (terminated)
 ```
 
-* 두번째는 명령이 background로 작업한다.
-
 **Q**) vi 에디터는 왜 background로 돌지 못할까?  
-> stdout에 여러 ~~ 로 출력 되긴 됨  
-vi 에디터는 stdin으로 입력을 받는데, background로 돌리고 bash 작업시 bash도 stdin으로 입력을 받기 때문에 입력이 vi 에디터로 들어가는지, bash로 들어가는지 모르고 알 수 없다.  
-stdin 을 받는 작업은 background로 돌 수 없다.  
-stdin은 무조건 foreground 작업으로만 간다.  
-background 작업에서 stdin을 받고자 한다면 stdin을 받고자 하는 곳에서 stop된다.  
-
+* 터미널의 기본 입력장치 : stdin, 출력장치 : stdout, stderr  
+* background 작업으로 stdout에 이것저것 내보내는 것은 혼잡스럽긴 하지만 작동한다.   
+* 반면 vi 에디터는 stdin으로 입력을 받는데, vi 에디터를 background로 실행시키고 bash 작업시 bash도 stdin으로 입력을 받기 때문에 입력이 vi 에디터로 들어가는지, bash로 들어가는지 모르고 알 수 없다.  
+* 따라서 stdin 을 받는 작업은 background로 돌 수 없다.  
+* stdin은 무조건 foreground 작업으로만 실행시킬 수 있다.  
+* background 작업에서 stdin을 받고자 한다면 stdin을 만나는 곳에서 stop된다.  
 * scanf를 background에서 작업하고 싶다면 stdin으로 받지 않고, redirection으로 입력 받으면 가능하다.
 
 ```bash
 $ ./bin             # scanf를 사용하는 프로그램
+$ ./bin &
+# scanf를 사용하는 프로그램이기 때문에 background로 실행시 바로 stop 된다.
 $ ./bin <<< 9988 &
-```
-
-```bash
-$ jobs
-[3]+ Running            sleep 3600 &
-$ kill %3
-[3]+ Terminated         sleep 3600
+# redirection으로 입력을 받게 하면 background에서 프로그램이 실행될 수 있다.
 ```
 
 * foreground 작업 죽이는 방법 = ctrl + c
 
-* CPU 개수 보는 방법 : $ cat /proc/cpuinfo
+* 0번 process = kernel
 
-* vi 에디터에서
+### `CPU 개수 및 정보 보는 방법`  
 
-* :!ls
+* $ cat /proc/cpuinfo
 
-* :r output.txt
+* webmin에서 CPU 정보, processor 정보 등을 볼 수 있다.
+
+### `Context Switching`  
+
+* 메모리에 여러 작업이 올라와 있고 이를 context switching 하며 실행 중인 상황
+
+* 경우에 따라 메모리가 부족하면 작업을 잠시 disk에 저장했다가 다시 메모리로 가져옴 = swapping
+    * disk의 한쪽 영역을 virtual memory로 만든다.
+
+* context switching 시 job을 context switching 중 시간이 많이 걸리면 CPU가 그 동안 다른 작업을 처리해 job의 starvation이 때문에 오버헤드가 발생한다.   
+    * 따라서 thread가 등장하게 됨
+
+### `Thread`  
+
+* context switching 을 빠르게 수행하도록 core를 논리적으로 나눈 것 = Thread  
+
+* OS 입장에서 실제로 core가 4개 밖에 없지만 thread로 인해 processor가 8개 존재한다고 생각하고 작업을 수행할 수 있다. 
+
+* vi 에디터를 실행중 다른 명령어를 수행하고 싶을 때 사용하는 방법 두 가지  
+    1. vi 에디터를 stopped 시키고 (ctrl + z) 명령어 수행 후 foreground 로 실행 (fg)
+    2. vi 에디터 화면에서 `:! 명령어` 실행
+
+* :!ls = vi 에디터에서 잠시 ls 명령어 사용하고 싶을 때
+
+* :r output.txt = vi 에디터에서 파일을 읽고 싶을 때
 
 * :r!ls = ls 명령의 결과를 읽어옴
 
-* :w -> :!cc test.c -> :!./a.out
+* :w -> :!cc test.c -> :!./a.out = 파일 저장 -> 컴파일 > 실행 수행
 
-* :w -> :!cc test.c ; ./a.out
+* :w -> :!cc test.c ; ./a.out = 파일 저장 -> 컴파일과 실행까지 수행
 
 ### `system - system call`  
 
 ```c
 #include <stdlib.h>
 int system(const char *command);
-execl()
+// 실행 결과 int로 저장되어 볼 수 있다. ($?)       
+execl("/bin/sh", "sh", "-c", command, (char *) 0);
+//두 함수 모두 system call 실행하는 기능이다.
 
-int execl(const char *command)
-```
-
-```c
-#include <stdio.h>
-#include <stdlib.h>
-
-int main()
-{
-        printf("Hello\n");
-        system("ls -li");)
-}
-```
-
-```bash
-pcc001@git:~/pcc/lec13$ !cc
-cc test.c
-pcc001@git:~/pcc/lec13$ ./a.out
-Hello
-total 20
-31327659 -rwxr-xr-x 1 pcc001 pcc 8344  1월 25 15:17 a.out
-31327640 -rw-r--r-- 1 pcc001 pcc    6  1월 25 15:10 output.txt
-31327673 -rw-r--r-- 1 pcc001 pcc   94  1월 25 15:17 test.c
-```
-
-```c
+//test 예시
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -4534,6 +4568,8 @@ int main()
 {
         printf("System Call: %d\n", system("ls -li"));
 }
+//실행 시 ls -li 명령어가 실행된다.
+//return 값을 출력해보면 0으로 출력됨
 ```
 
 ```bash
@@ -4543,54 +4579,92 @@ total 20
 31327640 -rw-r--r-- 1 pcc001 pcc    6  1월 25 15:10 output.txt
 31327679 -rw-r--r-- 1 pcc001 pcc  103  1월 25 15:19 test.c
 System Call: 0
+```
 
-$ ./a.out               # system(ls -li zzz) 
+* ls -li 명령어가 정상적으로 실행되었기 때문에 return 값이 0이다.
+
+```bash
+$ ./a.out          # system("ls -li zzz") + main에 return 100 추가
 ls: cannot access 'zzz': No such file or directory
 System Call: 512
 
-# test.c 에 return 100 추가
 $ echo $?
 100
 ```
 
-* return 값 : 0
+* system("ls -li zzz") 실행 시 오류가 나기 때문에 return 되는 int 값이 512이다.  
+
+* main 함수 안에 return 100을 했기 때문에 $? 를 출력하면 100이 나온다.
 
 ```bash
-$ ls -l zzz test.c
+$ ls -l zzz test.c                                 # 1
 ls: cannot access 'zzz': No such file or directory
 -rw-r--r-- 1 pcc001 pcc 120  1월 25 15:20 test.c
 
-$ ls -l zzz test.c > lsout.txt
+$ ls -l zzz test.c > lsout.txt                      # 2
 ls: cannot access 'zzz': No such file or directory
 $ cat lsout.txt
 -rw-r--r-- 1 pcc001 pcc 120  1월 25 15:20 test.c
 
-$ ls -l zzz test.c 2> lserr.txt
+$ ls -l zzz test.c 2> lserr.txt                     # 3
 -rw-r--r-- 1 pcc001 pcc 120  1월 25 15:20 test.c
 $ cat lserr.txt
 ls: cannot access 'zzz': No such file or directory
 
-$ ls -l zzz test.c 1> lsout.txt 2> lserr.txt
+$ ls -l zzz test.c 1> lsout.txt 2> lserr.txt         #4
 
-$ ls -l zzz test.c &> lsoutierr.txt
+$ ls -l zzz test.c &> lsoutierr.txt                  # 5
 $ cat lsoutierr.txt
 ls: cannot access 'zzz': No such file or directory
 -rw-r--r-- 1 pcc001 pcc 120  1월 25 15:20 test.c
 ```
 
-* popen = pipe open 함수
+1. ls -l 실행 시 에러와 정상적으로 실행된 내용을 둘 다 보여준다.  
+
+2. stdout은 txt 파일에 저장되고 stderr 은 터미널에 출력된다.
+
+3. stdout은 터미널에 출력되고 stderr 은 txt 파일에 저장된다.
+
+4. stdout은 lsout.txt 파일에, stderr은 lserr.txt 파일에 저장된다.
+
+5. stdout과 stderr이 함께 lsoutierr.txt 파일에 저장된다.
+
+### `popen`  
+
+* pipe open 함수 - 실행시킨 명령어의 표준입력 / 표준출력을 주고 받기 위한 용도로 사용한다.
+    * input / output pipe 를 open 하기 위한 용도로 사용한다.
+
+* parameter
+    * command : 실행할 명령어
+    * type
+        * "r" : 명령어를 실행하면 명령어가 표준 출력으로 출력한 문자열을 읽기 위한 용도로 파이프를 오픈한다.
+        * "w" : 명령어를 실행 후 사용자가 키보드로 데이터를 입력해야 하는 명령에 사용한다. 즉 command의 표준입력으로 데이터를 전송하기 위한 파이프를 오픈한다.
+
+```c
+#include <stdio.h>
+
+FILE *popen(const char *command, const char *type);
+```
 
 ```bash
-$ sh -c "ls -li"
-$ ls -li
+$ sh -c "ls -li"        # 1
+$ ls -li                # 2
 ```
+
+1. shell을 실행한 뒤 ls -li 실행 후 빠져나옴  
+    * sh -> ls -li -> exit
+
+2. 그냥 바로 ls -li 실행
 
 ### `fork`  
 
+* fork는 실행 중인 프로세스의 복사본 프로세스를 생성하는 함수이다.
+
 ```c
+//fork를 사용하기 위한 헤더파일과 fork 함수
 #include <sys/types.h>
 #include <unistd.h>
- pid_t fork(void);
+pid_t fork(void);
 
 #define _GNU_SOURCE
 #include <sched.h>
@@ -4611,38 +4685,40 @@ long clone(unsigned long flags, void *child_stack, int *ptid, int *ctid, unsigne
 int main()
 {
         int a = 0;
-        pid_t pid ,pid2;
+        pid_t pid;
         pid = fork();
-        //pid2 = fork();
         for (int i = 0; i < 100; i++)
         {
-                sleep(1);
-                printf("%d : %d : %d : \n", pid, a++, i);
+                sleep(1) ;
+                printf("PID %d A=%d i=%d : \n", pid, a++, i);
         }
 }
 ```
 
-* slepp 이라고 하는 system call (library) 있다.
-    * :!man printf
-    * :!man 3 printf
-    * :!man sleep
-    * :!man 3 sleep
+* sleep 명령어도 있지만,sleep 이라고 하는 system call (library)도 있다.
+    * :!man printf = user command
+    * :!man 3 printf = system 함수 (linux programmer's manual)
+    * :!man sleep = user command (명령어)
+    * :!man 3 sleep = system 함수
         * #include <unistd.h>
         * unsigned int sleep(unsigned int seconds);
+        * 입력한 초만큼 sleep 하는 함수
 
 ```bash
-PID 24310 : A=0 : i=0 :
+# forktest.c 실행 결과
+PID 24515 : A=0 : i=0 :
 PID 0 : A=0 : i=0 :
-PID 24310 : A=1 : i=1 :
+PID 24515 : A=1 : i=1 :
 PID 0 : A=1 : i=1 :
-PID 24310 : A=2 : i=2 :
+PID 24515 : A=2 : i=2 :
 PID 0 : A=2 : i=2 :
-PID 24310 : A=3 : i=3 :
+PID 24515 : A=3 : i=3 :
 PID 0 : A=3 : i=3 :
-PID 24310 : A=4 : i=4 :
+PID 24515 : A=4 : i=4 :
 PID 0 : A=4 : i=4 :
-PID 24310 : A=5 : i=5 :
+PID 24515 : A=5 : i=5 :
 PID 0 : A=5 : i=5 :
+# 생략...
 
 $ a.out &
 $ ps
@@ -4652,6 +4728,16 @@ $ ps
 24562 pts/12   00:00:00 ps
 28047 pts/12   00:00:00 bash
 ```
+
+* 실행 시 fork 되어 서로 다른 PID를 가진 프로세스가 실행되는 모습을 볼 수 있다.
+
+* fork는 context 전체가 메모리에 복제된다. 따라서 다른 프로세스(PID 24515)에서 A 값을 수정해도 이 프로세스(PID 0)에는 영향을 주지 않는다.
+
+* 실행 중 ps 명령어로 프로세스를 살펴보면 a.out가 두 개 실행된다.
+
+* 프로그램 실행 중 `kill -9 PID` 명령어 실행하면 프로세스 하나가 죽는다.
+
+### `PID에 따라 다른 작업 수행하도록 하기`  
 
 ```c
 #include <stdio.h>
@@ -4663,7 +4749,6 @@ int main()
         int a = 0;
         pid_t pid ,pid2;
         pid = fork();
-        //pid2 = fork();
         for (int i = 0; i < 100; i++)
         {
                 sleep(1);
@@ -4675,7 +4760,12 @@ int main()
 }
 ```
 
+* pid가 0인 프로세스는 a 값을 증가시킨다.  
+
+* pid가 0이 아닌 프로세스는 a 값을 감소시킨다.
+
 ```bash
+# 실행 결과
 PID 25453 : A=0 : i=0 :
 PID 0 : A=0 : i=0 :
 PID 25453 : A=-1 : i=1 :
@@ -4690,6 +4780,8 @@ PID 25453 : A=-5 : i=5 :
 PID 0 : A=5 : i=5 :
 ```
 
+### `두 번 fork 하기`  
+
 ```c
 #include <stdio.h>
 #include <sys/types.h>
@@ -4699,7 +4791,7 @@ int main()
 {
 	int a = 0;
 	pid_t pid ,pid2;
-       	pid = fork();
+    pid = fork();
 	pid2 = fork();
 	for (int i = 0; i < 100; i++)
 	{
@@ -4709,9 +4801,11 @@ int main()
 }
 ```
 
-* a.out & 실행시
+**Q**) a.out & 실행 시 프로세스가 총 몇 개 생길까요?
+> 아래 실행 결과 참고
 
 ```bash
+# 실행 결과
   PID TTY          TIME CMD
 24668 pts/4    00:00:00 bash
 26223 pts/4    00:00:00 a.out
@@ -4721,11 +4815,72 @@ int main()
 26243 pts/4    00:00:00 ps
 ```
 
+* 프로세스가 총 4개 생성된다. main을 실행하던 중 첫번째 fork를 만나 프로세스가 두 개가 된다. -> 두 프로세스가 진행 중 두번째 fork 를 만나 각각 fork 되어 총 4개의 프로세스가 생성되는 것이다.
+
 ### `Thread`  
 
 * core vs Thread
+    * core는 실제 하드웨어적으로 존재하지만, thread는 가상의 logical한 실행 흐름 단위이다.
+    * thread는 여러 CPU에서 실행될 수 있다.
 
-* POSIX == UNIX / Linux
+<div style="text-align : center;">
+    <img src=./img/corethread.png width="70%"/>  
+</div>
+
+* 위 그림처럼 하나의 process에 속하는 하나의 thread가 하나의 core에서 실행된다.  
+
+* 또는 하나의 process에 속하는 여러 threads가 여러 core에서, 여러 processor에서 실행될 수 있다. (운영체제가 작업을 assign 한다.)
+
+### `thread vs pthread`  
+
+* thread.h (C11 - 2011년 버전)  
+    * windows
+
+```c
+#include <threads.h>
+#include <stdio.h>
+
+int run(void *arg)
+{
+    printf("Hello world of C11 threads.");
+    return 0;
+}
+
+int main(int argc, const char *argv[])
+{
+    thrd_t thread;
+    int result;
+    thrd_create(&thread, run, NULL);
+    thrd_join(&thread, &result);
+    printf("Thread return %d at the end\n", result);
+}
+```
+
+* pthread.h (POSIX)  
+    * 우리가 사용하는 
+
+```c
+#include <pthread.h>
+#include <stdio.h>
+
+void *run (void *arg)       //void * = 함수의 포인터
+{
+    printf("Hello world of POSXI threads.");
+    return 0;
+
+}
+
+int main()
+{
+	pthread_t thread;
+	int result; 
+	pthread_create(&thread, NULL, run, NULL );
+	pthread_join(thread, &result);          //thread 끝날 때까지 기다림
+	printf("Thread return %d at the end\n", result);
+}
+```
+
+* thread와 pthread에서 thread type, thread_create() 함수의 parameter 등 조금씩 다른 점이 있다.
 
 ### `pthread.h API`  
 
@@ -4734,21 +4889,21 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_
 //생성 함수 start_routine을 실행
 
 void pthread_exit(void *retval);
-//retval must not in stack
-//main thread exit with this, other threads are still running
+//호출하는 스레드를 종료한다.
 
 int pthread_join(pthread_t thread, void **retval);
-```
+//Synchronization을 구현하고 싶다면 호출
+//pthread_join은 스레드를 생성했던 thread를 끝날때까지 기다려준다. 
+//만약 thread가 이미 종료되었다면 즉시 리턴한다.
 
-```c
 void pthread_cancel(pthread_t thread);
-//Send cancellation request to thread
+//스레드에게 취소 요청을 보낸다.
 
 pthread_t pthread_self(void);
-//return ID of the calling thread
+//현재 스레드의 id를 출력한다.
 
 int pthread_equal(pthread_t t1, pthread_t t2);
-//compare thread IDs
+//두 스레드가 같은 스레드인지 id를 비교한다.
 ```
 
 ```c
@@ -4759,38 +4914,44 @@ int pthread_equal(pthread_t t1, pthread_t t2);
 #include <unistd.h>
 
 
-int bbb = 0;
+int bbb = 0; 
 
 void fn_s()
 {
-    static int a = 0;
+    static int a = 0; 
     printf("== %d %d ==",a++, bbb++);
 }
 
 
 void *run (void *arg)
 {
-    printf("Hello world of POSXI threads.%d\n", (int) pthread_self() );
-    for (int i = 0; i < 100; i++)
-        {
-                usleep(1000000);
-                fn_s();
-        }
+    printf("Hello world of POSIX threads.%d\n", (int)(0) );
+    for (int i = 0; i < 10; i++)
+	{
+		sleep(1); 
+		fn_s(); 
+	}
     return 0;
 
 }
 
 int main()
 {
-        pthread_t thread1;
-        int result1;
-        pthread_create(&thread1, NULL, run, NULL );
-        pthread_join(thread1, (void **) &result1);
-        printf("Thread return %d at the end\n", result1);
+	char bufff[10];
+    	setvbuf(stdout, bufff,  _IOFBF,  10);
+	//pthread_t thread1;
+	int result1;
+	//pthread_create(&thread1, NULL, run, NULL );
+	run((void *) 0); 
+	//pthread_join(thread1, (void **) &result1);
+	printf("Thread return %d at the end\n", result1);
 }
 ```
 
-* cc threadtest.c -lpthread
+* cc threadtest.c -lpthread : pthread 라이브러리를 포함해서 컴파일
+
+**Q**) 왜 a.out가 작동하지 않는 것일까?
+> Hint: 버퍼 (혼자 추측해보기.. 다음 시간에 설명)  
 
 ***
 
