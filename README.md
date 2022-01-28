@@ -4366,7 +4366,77 @@ SET ( SRC_FILES
 SET ( CMAKE_C_COMPILER "gcc" )
 ```
 
-//2시간 35분
+### `project`  
+
+* 정밀도가 높은 integer 곱셈은 어떻게 만들까? (s15.16 기준)
+
+1. 오버플로우가 발생하지 않는 방법
+
+* 32bit를 64bit로 늘려 계산하여 오버플로우가 발생하지 않도록함
+
+```c
+fixed fxMul_precision(fixed a, fixed b) 
+{
+	long long la = a, lb = b, lc;
+	lc = la * lb;		// 장점: 오버플로우가 발생하지 않는다.
+    lc >>= FX_Q_NUM;    // 2의 -FX_Q_NUM승을 곱한 것과 같다.
+	return (fixed) lc;
+}
+```
+
+* fixed point 뒤에 있는 bit 수 = FX_Q_NUM
+
+초록색 고정 점이 없는 전체 숫자 i 는 integer 값으로 어떻게 계산할까? (크기: 8bit)  
+
+i(a) = (2^7) * (2^bit 값) + ... (2^0) * (2^bit 값)  
+
+R(a) = (2^3) * (2^bit 값) + ... (2^0) * (2^bit 값) 점(.) (2^-1) * (2^bit 값) ... (2^-4) * (2^bit 값)  
+
+-4 => FX_Q_NUM이 4이다.  
+
+Real 값 : **R(a) = ia * (2 ^ -FX_Q_NUM)**  
+
+R(a) = R(b) = ia * (2 ^ -4)라고 가정하고 R(a) * R(b) = R(c) 연산 시에 R(c)는 ia * ib * (2 ^ -8)로 표현되면 안된다.  
+
+R(c) = (ia * ib * (2 ^ -4)) * (2 ^ -4) = R(c)는 ia, ib를 그대로 integer처럼 곱하고 2의 -4승을 곱하면 R(c)를 계산할 수 있다.  
+
+```c
+#define FX_Q_NUM_A (FX_Q_NUM - (FX_Q_NUM/2))
+#define FX_Q_NUM_B (FX_Q_NUM/2)
+
+fixed fxMul_fair(fixed a, fixed b)
+{
+	return (a>>FX_Q_NUM) * (b>>FX_Q_NUM_B);
+}
+```
+
+1. ia * ib * (2의 -8승)  
+2. (ia * ib * (2의 -4승)) * (2의 -4승)  
+    * 오버플로우 발생 가능성 O
+3. (ia * (2의 -2승)) * (ib * (2의 -2승)) * (2의 -4승)
+    * 수학적으로는 1, 2, 3 모두 같은 식이지만 3번 연산은 계산 전에 값을 깎아버리는 문제가 발생한다.   
+    * 위 코드가 3번 방식과 유사한 방법으로 연산한다.
+
+* 계산 방법의 장단점, 계산 가능한 범위 -> 리포트에 기록하기
+
+```c
+//FX_Q_NUM이 8일 때
+fixed fxMul_fair(fixed a, fixed b)
+{
+	return ((a>>4) * (b>>4)) >> 8;
+}
+
+fixed fxMul_performance(fixed a, fixed b)
+{
+	return (a>>8) * (b>>8);
+}
+```
+
+* 두 함수를 비교했을 때 퍼포먼스 함수가 shift 두번에 곱셈 한번이기 때문에 속도는 퍼포먼스가 더 빠르다.
+
+* 대신 퍼포먼스 합수로 10000 * 0.0001 계산하면 1이 나와야하는데 0이 나온다.
+
+* 어디서부터 언더/오버플로우가 발생하는지, 이 시스템에서 표현할 수 있는 가장 작은, 큰 수가 무엇인지, 가장 작은 차는 무엇인지, 함수를 사용하면 연산이 어떻게 되고 함수마다 어떤 장단점을 보이는지 비교 정리하여 보고서에 기록하기
 
 ***
 
@@ -4989,6 +5059,7 @@ int main()
 int bbb = 0;
 
 void fn_s()
+{
     static int a = 0;
     printf("== %d %d ==",a++, bbb++);
 }
@@ -5320,6 +5391,8 @@ int main()
     * mutual exclusion == mutex
 
 ### `Mutex`  
+
+* mutex는 하나의 thread가 자원을 사용하는 동안 다른 thread가 자원에 접근하거나 사용하지 못하도록 하는 방법이다.
 
 ```c
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
