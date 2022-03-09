@@ -1,4 +1,4 @@
-# 실전코딩 2 실습 리포트
+## Practical Coding Report
 
 ### `sshid` : pcc001
 ### `name` : 곽수정 ✨
